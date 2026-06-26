@@ -1,13 +1,13 @@
 var tutorialSteps = [
 {
 icon: 'bi-map', 
-title: 'Welcome to OPIS Pipeline Explorer',
+title: 'Welcome to OPIS!',
 body: 'This tool lets you explore the U.S. pipeline network and simulate the estimated cost of a spill incident. Use the right-hand panel to control what\'s shown on the map.<br><br>This short tutorial walks you through the key features.'
 },
 {
 icon: 'bi-droplet-half', 
 title: 'Select a Pipeline Layer',
-body: 'In the <strong>Pipelines</strong> tab on the right, pick a pipeline type: Crude Oil, Natural Gas, Petroleum Products, and more. Only one type is shown at a time for clarity.<br><br>Each type appears in a distinct color on the map.'
+body: 'In the <strong>Pipelines</strong> tab on the right, pick a pipeline type: Crude Oil, Natural Gas, Petroleum Products, and more. Only one type is shown at a time for clarity and performance.<br><br>Each type appears in a distinct color on the map.'
 },
 {
 icon: 'bi-layers',
@@ -85,16 +85,26 @@ document.body.insertAdjacentHTML('beforeend', `
 
 renderTutStep();
 
-document.getElementById('tut-close-btn').addEventListener('click', function() {
-document.getElementById('tutorial-backdrop').classList.remove('open');
-});
-document.getElementById('tut-next-btn').addEventListener('click', function() {
-if (tutStep < tutorialSteps.length - 1) {
-tutStep++;
-renderTutStep();
-} else {
-document.getElementById('tutorial-backdrop').classList.remove('open');
+// Function to handle closing and saving preference
+function closeAndSaveTutorial() {
+    var checkEl = document.getElementById('tut-no-show');
+    if (checkEl && checkEl.checked) {
+        localStorage.setItem('skipOpisTutorial', 'true');
+    }
+    document.getElementById('tutorial-backdrop').classList.remove('open');
 }
+
+// Close button click
+document.getElementById('tut-close-btn').addEventListener('click', closeAndSaveTutorial);
+
+// Next button click
+document.getElementById('tut-next-btn').addEventListener('click', function() {
+    if (tutStep < tutorialSteps.length - 1) {
+        tutStep++;
+        renderTutStep();
+    } else {
+        closeAndSaveTutorial(); // Triggers when "Get started →" is clicked on the final step
+    }
 });
 document.getElementById('tut-prev-btn').addEventListener('click', function() {
 if (tutStep > 0) { tutStep--; renderTutStep(); }
@@ -103,6 +113,16 @@ document.getElementById('tutorial-btn').addEventListener('click', function() {
 tutStep = 0;
 renderTutStep();
 document.getElementById('tutorial-backdrop').classList.add('open');
+});
+// Check memory preference on page load
+window.addEventListener('DOMContentLoaded', function() {
+    var skipTutorial = localStorage.getItem('skipOpisTutorial');
+    var backdrop = document.getElementById('tutorial-backdrop');
+    
+    if (skipTutorial === 'true' && backdrop) {
+        // If they checked the box previously, strip the 'open' class immediately
+        backdrop.classList.remove('open');
+    }
 });
 
 // ── Methodology modal ───────────────────────────────────────────
