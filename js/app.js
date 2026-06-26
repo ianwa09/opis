@@ -531,6 +531,11 @@ document.getElementById('sim-state-display').textContent =
 // Reset results
 document.getElementById('sim-results').classList.remove('visible');
 document.getElementById('sim-backdrop').classList.add('open');
+
+gtag('event', 'run_simulation', {
+        'pipeline_operator': props.opername || props.Opername || 'Unknown',
+        'pipeline_name': props.Pipename || props.pipename || 'Unknown'
+    });
 }
 
 // ── Close simulator ───────────────────────────────────────────
