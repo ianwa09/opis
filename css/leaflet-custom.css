@@ -1,0 +1,43 @@
+#map_10b250abf3b9fb60cf6682f90e22c04c {
+position: relative;
+width: 100.0%;
+height: 100.0%;
+left: 0.0%;
+top: 0.0%;
+}
+.leaflet-container { font-size: 1rem; }
+
+html, body {
+width: 100%;
+height: 100%;
+margin: 0;
+padding: 0;
+}
+#map {
+position:absolute;
+top:0;
+bottom:0;
+right:0;
+left:0;
+}
+
+
+.foliumtooltip {
+
+}
+.foliumtooltip table{
+margin: auto;
+}
+.foliumtooltip tr{
+text-align: left;
+}
+.foliumtooltip th{
+padding: 2px; padding-right: 8px;
+}
+
+
+.folium-map { top: 52px !important; height: calc(100% - 52px) !important; }
+#map_10b250abf3b9fb60cf6682f90e22c04c { height: 100% !important; }
+
+.leaflet-control-layers { display: none !important; }
+.leaflet-top.leaflet-left { top: 60px !important; }
