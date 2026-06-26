@@ -140,11 +140,18 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
     <div class="meth-section">
     <div class="meth-section-title">1. Pipeline Network Data</div>
-    <p><strong>Source:</strong> U.S. Energy Information Administration (EIA) National Pipeline Data (public release), supplemented by the PHMSA operator registry.</p>
+    <p><strong>Source &amp; Methodology:</strong> Due to the removal of official geospatial datasets from federal agency platforms (such as the DOT and DOE) under the current administration, pipeline geolocational and infrastructural data had to be sourced via public internet data archives and secondary repositories.</p>
     <ul>
-        <li>Layers include Crude Oil, Natural Gas, Petroleum Products, HGL, Submarine, POL Storage Tanks, and Intermodal Freight corridors.</li>
-        <li>Pipeline geometries are displayed as-filed with federal regulators. Minor routing discrepancies may exist for newer or recently decommissioned segments.</li>
-        <li>Operator names and pipeline status reflect the most recent publicly available data. Operational status can change without public notice.</li>
+        <li><strong>DataLumos Archive (ICPSR / University of Michigan):</strong> Sourced archived government datasets for Homeland Infrastructure Foundation-Level Data (HIFLD) layers, including:
+            <ul>
+                <li>Submarine Pipelines (ICPSR 240657 &amp; ICPSR 240796)</li>
+                <li>Natural Gas Pipelines (ICPSR 239743)</li>
+                <li>Hydrocarbon Gas Liquid / Petroleum Product Pipelines (ICPSR 239260)</li>
+                <li>Intermodal Freight Corridors (ICPSR 240798)</li>
+                <li>POL (Petroleum, Oil, and Lubricants) Terminals (ICPSR 239798)</li>
+            </ul>
+        </li>
+        <li><strong>ArcGIS Hub (Esri Federal Datasets):</strong> Sourced the Crude Oil layer utilizing U.S. Energy Information Administration (EIA) data hosted via Esri's public dataset hub. See Appendix B for source link.</li>
     </ul>
     </div>
 
@@ -213,7 +220,7 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="meth-section-title" style="margin-top:6px">Data Sources</div>
     <ul>
         <li>PHMSA Incident Data: phmsa.dot.gov/data-and-statistics/pipeline/pipeline-incident-flagged-files</li>
-        <li>EIA Pipeline Data: eia.gov/maps/layer_info-m.php</li>
+        <li>EIA Pipeline Data: hub.arcgis.com/datasets/bb2aee97117d403ea63bcfe6be4a12c8_0</li>
         <li>CPI Inflation Adjustment: bls.gov/cpi (Series CUUR0000SA0)</li>
         <li>State Bounding Boxes: U.S. Census Bureau TIGER/Line boundaries</li>
     </ul>
