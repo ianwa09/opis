@@ -2,7 +2,7 @@ var tutorialSteps = [
 {
 icon: 'bi-map', 
 title: 'Welcome to OPIS Pipeline Explorer',
-body: 'This tool lets you explore the U.S. pipeline network and simulate the estimated cost of a spill incident. Use the right-hand panel to control what\'s shown on the map.<br><br>This short tutorial walks you through the key features — takes about 30 seconds.'
+body: 'This tool lets you explore the U.S. pipeline network and simulate the estimated cost of a spill incident. Use the right-hand panel to control what\'s shown on the map.<br><br>This short tutorial walks you through the key features.'
 },
 {
 icon: 'bi-droplet-half', 
@@ -115,7 +115,9 @@ document.body.insertAdjacentHTML('beforeend', `
     <button class="meth-close" id="meth-close-btn">&#x2715;</button>
 </div>
 <div class="meth-body">
-
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <img src="opis-logo.png" alt="OPIS Logo" style="height: 200px; width: auto; object-fit: contain;">
+    </div>
     <div class="meth-section">
     <div class="meth-section-title">1. Pipeline Network Data</div>
     <p><strong>Source:</strong> U.S. Energy Information Administration (EIA) National Pipeline Data (public release), supplemented by the PHMSA operator registry.</p>
@@ -403,7 +405,7 @@ document.body.insertAdjacentHTML('beforeend', `
         This simulation uses an OLS regression model trained on 2015&ndash;2024 PHMSA
         hazardous liquid incident reports, inflation-adjusted to 2024 USD. Results
         represent the <em>average expected cost</em> for incidents with similar
-        characteristics — not a guarantee. The 95% confidence interval reflects
+        characteristics: not a guarantee. The 95% confidence interval reflects
         uncertainty in the mean estimate, not individual incident variability.
     </p>
     </div>
