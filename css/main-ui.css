@@ -513,6 +513,7 @@ width: 480px;
 max-width: 94vw;
 position: relative;
 overflow: hidden;
+transform: translateX(-140px);
 }
 #tutorial-modal .tut-header {
 background: #1e3a5f;
