@@ -51,7 +51,7 @@ nextBtn.textContent = tutStep === tutorialSteps.length - 1 ? 'Get started →' :
 }
 
 document.body.insertAdjacentHTML('beforeend', `
-<div id="tutorial-backdrop" class="open">
+<div id="tutorial-backdrop">
 <div id="tutorial-modal">
 <div class="tut-header">
     <h3>How to use OPIS</h3>
@@ -87,10 +87,6 @@ renderTutStep();
 
 // Function to handle closing and saving preference
 function closeAndSaveTutorial() {
-    var checkEl = document.getElementById('tut-no-show');
-    if (checkEl && checkEl.checked) {
-        localStorage.setItem('skipOpisTutorial', 'true');
-    }
     document.getElementById('tutorial-backdrop').classList.remove('open');
 }
 
@@ -110,18 +106,30 @@ document.getElementById('tut-prev-btn').addEventListener('click', function() {
 if (tutStep > 0) { tutStep--; renderTutStep(); }
 });
 document.getElementById('tutorial-btn').addEventListener('click', function() {
-tutStep = 0;
-renderTutStep();
-document.getElementById('tutorial-backdrop').classList.add('open');
-});
-// Check memory preference on page load
-window.addEventListener('DOMContentLoaded', function() {
-    var skipTutorial = localStorage.getItem('skipOpisTutorial');
-    var backdrop = document.getElementById('tutorial-backdrop');
+    tutStep = 0;
+    renderTutStep();
     
-    if (skipTutorial === 'true' && backdrop) {
-        // If they checked the box previously, strip the 'open' class immediately
-        backdrop.classList.remove('open');
+    var skipTutorial = localStorage.getItem('skipOpisTutorial');
+    document.getElementById('tut-no-show').checked = (skipTutorial === 'true');
+    
+    document.getElementById('tutorial-backdrop').classList.add('open');
+});
+
+var skipTutorial = localStorage.getItem('skipOpisTutorial');
+var backdrop = document.getElementById('tutorial-backdrop');
+
+if (skipTutorial !== 'true' && backdrop) {
+    backdrop.classList.add('open');
+    document.getElementById('tut-no-show').checked = false;
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'tut-no-show') {
+        if (e.target.checked) {
+            localStorage.setItem('skipOpisTutorial', 'true');
+        } else {
+            localStorage.removeItem('skipOpisTutorial');
+        }
     }
 });
 
