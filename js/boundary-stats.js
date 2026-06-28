@@ -22,11 +22,11 @@ window.addEventListener('load', function() {
         removalMode: true
     });
 
+
     // 2b. Opt-in mode: Geoman ignores ALL layers by default.
     // Data layers (pipelines, spills) are never opted in, so Geoman can't
     // snap to, hover, or delete them. Drawn boundary shapes are opted in
     // after creation so the eraser can still remove them.
-    // Note: L.PM.setOptIn is a static call, not on the map instance.
     L.PM.setOptIn(true);
 
 
@@ -35,6 +35,24 @@ window.addEventListener('load', function() {
         // Opt this drawn boundary into Geoman so the eraser can delete it
         e.layer.options.pmIgnore = false;
         L.PM.reInitLayer(e.layer);
+
+        // Bring all data layers to the front so they sit above the drawn boundary.
+        // This lets the normal cursor interact with pipelines and spill markers
+        // inside the boundary while the boundary itself remains clickable at its edges.
+        const dataLayerIds = [
+            'feature_group_5b0dfed6baae0869165359db3af8c544',  // Crude Oil
+            'feature_group_d79a63b58ef60015b33a0f6e11d5dd61',  // Natural Gas
+            'feature_group_40bced8c6f59d655fde0781991531044',  // Petroleum Product
+            'feature_group_357123ba0331538e411a1b41ab21294c',  // (unlabelled)
+            'feature_group_e70ec41a953fce78fa54a7028d1d3046',  // Submarine
+            'feature_group_f4540c23926000afe26df47786ce488e',  // POL Storage Tanks
+            'feature_group_e4a7cd78a21b50f69a050c24ccfdfa61',  // Intermodal Freight
+            'feature_group_1d77eab727291666943a06c2652de70b',  // Spills
+        ];
+        dataLayerIds.forEach(function(id) {
+            var lg = window[id];
+            if (lg && typeof lg.bringToFront === 'function') lg.bringToFront();
+        });
 
         const layer = e.layer;
         const drawnPolygon = layer.toGeoJSON();
