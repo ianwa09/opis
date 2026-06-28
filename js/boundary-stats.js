@@ -24,9 +24,8 @@ window.addEventListener('load', function() {
 
 
     // 2b. Opt-in mode: Geoman ignores ALL layers by default.
-    // Data layers (pipelines, spills) are never opted in, so Geoman can't
-    // snap to, hover, or delete them. Drawn boundary shapes are opted in
-    // after creation so the eraser can still remove them.
+    // Data layers are never opted in so Geoman can't snap/hover/delete them.
+    // Drawn boundary shapes are opted in after creation so the eraser still works.
     L.PM.setOptIn(true);
 
 
@@ -36,10 +35,9 @@ window.addEventListener('load', function() {
         e.layer.options.pmIgnore = false;
         L.PM.reInitLayer(e.layer);
 
-        // Bring all data layers to the front so they sit above the drawn boundary.
-        // This lets the normal cursor interact with pipelines and spill markers
-        // inside the boundary while the boundary itself remains clickable at its edges.
-        const dataLayerIds = [
+        // Bring all data feature groups to front so they sit above the boundary
+        // and the normal cursor can interact with pipelines/spills inside it
+        const dataFeatureGroups = [
             'feature_group_5b0dfed6baae0869165359db3af8c544',  // Crude Oil
             'feature_group_d79a63b58ef60015b33a0f6e11d5dd61',  // Natural Gas
             'feature_group_40bced8c6f59d655fde0781991531044',  // Petroleum Product
@@ -49,7 +47,7 @@ window.addEventListener('load', function() {
             'feature_group_e4a7cd78a21b50f69a050c24ccfdfa61',  // Intermodal Freight
             'feature_group_1d77eab727291666943a06c2652de70b',  // Spills
         ];
-        dataLayerIds.forEach(function(id) {
+        dataFeatureGroups.forEach(function(id) {
             var lg = window[id];
             if (lg && typeof lg.bringToFront === 'function') lg.bringToFront();
         });
@@ -180,12 +178,17 @@ window.addEventListener('load', function() {
         
         let topCause = "None";
         let maxCauseCount = 0;
+        let topCauseCount = 0;
         for (const [cause, count] of Object.entries(spillCauses)) {
             if (count > maxCauseCount) {
                 maxCauseCount = count;
                 topCause = cause;
+                topCauseCount = 1;
+            } else if (count === maxCauseCount) {
+                topCauseCount++;
             }
         }
+        if (topCauseCount > 1) topCause = "Multiple";
 
         const maxCrossings = Math.max(...Object.values(crossingBreakdown), 1);
 
@@ -234,8 +237,8 @@ window.addEventListener('load', function() {
                             <span style="color: #991b1b; opacity: 0.8;">Avg. Spill Size</span>
                             <span style="font-weight: 600; color: #7f1d1d;">${avgSpillVolume.toFixed(1)} bbls</span>
                         </div>
-                        <div style="border-top: 1px dashed #fca5a5; margin: 4px 0; padding-top: 4px; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="color: #991b1b; opacity: 0.8; font-size: 11.5px;">Primary Cause</span>
+                        <div class="cause-hover-row" style="border-top: 1px dashed #fca5a5; margin: 4px 0; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; cursor: help;">
+                            <span style="color: #991b1b; opacity: 0.8; font-size: 11.5px; border-bottom: 1px dotted #fca5a5;">Primary Cause</span>
                             <span style="font-size: 11px; font-weight: 700; background-color: #fee2e2; padding: 2px 6px; border-radius: 4px; color: #991b1b; text-transform: uppercase;">${topCause}</span>
                         </div>
                     </div>
@@ -246,7 +249,7 @@ window.addEventListener('load', function() {
         // 1. Bind the popup (don't open yet — need to wire the tooltip first)
         layer.bindPopup(popupContent);
 
-        // 2. Build tracking mouse tooltip
+        // 2. Build tracking mouse tooltips (crossings + causes)
         let mouseTooltip = document.getElementById('crossings-mouse-tooltip');
         if (!mouseTooltip) {
             mouseTooltip = document.createElement('div');
@@ -266,6 +269,27 @@ window.addEventListener('load', function() {
                 color: #1e293b;
             `;
             document.body.appendChild(mouseTooltip);
+        }
+
+        let causeTooltip = document.getElementById('cause-mouse-tooltip');
+        if (!causeTooltip) {
+            causeTooltip = document.createElement('div');
+            causeTooltip.id = 'cause-mouse-tooltip';
+            causeTooltip.style.cssText = `
+                position: fixed;
+                z-index: 10000;
+                display: none;
+                pointer-events: none;
+                background: #ffffff;
+                border: 1px solid #fee2e2;
+                border-radius: 8px;
+                padding: 12px;
+                width: 230px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+                font-family: 'Inter', -apple-system, sans-serif;
+                color: #1e293b;
+            `;
+            document.body.appendChild(causeTooltip);
         }
         
         mouseTooltip.innerHTML = `
@@ -312,23 +336,63 @@ window.addEventListener('load', function() {
             </div>
         `;
 
-        // 3. Attach interactive trackers to row
+        // Build cause breakdown tooltip HTML (sorted descending by count)
+        const sortedCauses = Object.entries(spillCauses).sort((a, b) => b[1] - a[1]);
+        const maxCauseVal = sortedCauses.length > 0 ? sortedCauses[0][1] : 1;
+        const causeColors = ['#b91c1c', '#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
+        causeTooltip.innerHTML = `
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                Causes Breakdown
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${sortedCauses.length === 0
+                    ? '<div style="font-size: 11px; color: #94a3b8;">No incidents in zone</div>'
+                    : sortedCauses.map(([cause, count], i) => `
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                                <span style="font-weight: 500;">${cause}</span>
+                                <span style="font-weight: 600; color: #0f172a;">${count}</span>
+                            </div>
+                            <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${(count / maxCauseVal) * 100}%; height: 100%; background: ${causeColors[Math.min(i, causeColors.length - 1)]};"></div>
+                            </div>
+                        </div>`).join('')
+                }
+            </div>
+        `;
+
+        // 3. Attach interactive trackers to both hover rows
         function wireHoverRow() {
             const popupContainer = layer.getPopup()._container;
             if (!popupContainer) return;
-            const hoverRow = popupContainer.querySelector('.crossings-hover-row');
-            if (!hoverRow) return;
 
-            hoverRow.addEventListener('mouseenter', function() {
-                mouseTooltip.style.display = 'block';
-            });
-            hoverRow.addEventListener('mousemove', function(event) {
-                mouseTooltip.style.left = (event.clientX + 15) + 'px';
-                mouseTooltip.style.top = (event.clientY + 15) + 'px';
-            });
-            hoverRow.addEventListener('mouseleave', function() {
-                mouseTooltip.style.display = 'none';
-            });
+            const hoverRow = popupContainer.querySelector('.crossings-hover-row');
+            if (hoverRow) {
+                hoverRow.addEventListener('mouseenter', function() {
+                    mouseTooltip.style.display = 'block';
+                });
+                hoverRow.addEventListener('mousemove', function(event) {
+                    mouseTooltip.style.left = (event.clientX + 15) + 'px';
+                    mouseTooltip.style.top = (event.clientY + 15) + 'px';
+                });
+                hoverRow.addEventListener('mouseleave', function() {
+                    mouseTooltip.style.display = 'none';
+                });
+            }
+
+            const causeRow = popupContainer.querySelector('.cause-hover-row');
+            if (causeRow) {
+                causeRow.addEventListener('mouseenter', function() {
+                    causeTooltip.style.display = 'block';
+                });
+                causeRow.addEventListener('mousemove', function(event) {
+                    causeTooltip.style.left = (event.clientX + 15) + 'px';
+                    causeTooltip.style.top = (event.clientY + 15) + 'px';
+                });
+                causeRow.addEventListener('mouseleave', function() {
+                    causeTooltip.style.display = 'none';
+                });
+            }
         }
 
         // Open the popup now — _container is available immediately after this call
@@ -343,6 +407,7 @@ window.addEventListener('load', function() {
 
         layer.getPopup().on('remove', function() {
             if (mouseTooltip) mouseTooltip.style.display = 'none';
+            if (causeTooltip) causeTooltip.style.display = 'none';
         });
     });
 });
