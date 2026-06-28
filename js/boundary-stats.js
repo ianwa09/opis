@@ -22,13 +22,13 @@ window.addEventListener('load', function() {
         removalMode: true
     });
 
+
     // 3. Listen for when a shape is drawn
     mapInstance.on('pm:create', function(e) {
         const layer = e.layer;
         const drawnPolygon = layer.toGeoJSON();
 
         // --- Calculation Counters ---
-        let intersectingPipelinesCount = 0;
         let totalLengthInZoneKm = 0;
         let uniqueOperators = new Set();
 
@@ -36,37 +36,68 @@ window.addEventListener('load', function() {
         let totalBarrelsSpilled = 0;
         let spillCauses = {};
 
-        // List of all global layer variables Folium injected into your app
-        const foliumLayerIds = [
+        // Track breakdowns specific to commodity types
+        let crossingBreakdown = {
+            'Crude Oil': 0,
+            'Natural Gas': 0,
+            'Petroleum Product': 0,
+            'Other Infrastructure': 0
+        };
+
+        // TRACK UNIQUE TRACKS: Keeps segment chunks from double-counting
+        let uniqueCrossingsTracker = new Set();
+
+        // Separate layer arrays to prevent calculation leakage / double counting
+        const pipelineLayerIds = [
             'geo_json_4b1d758048ef739b6042e56e6cc670cd', // Crude Oil
             'geo_json_9a5a8321701a3d88a35c68c0fc9c3769', // Natural Gas
             'geo_json_90c4b8a9f122b1ea491be72c37d83408', // Petroleum Product
             'geo_json_eb363b4d3f65896b9b385e5518c884e6', 
-            'geo_json_8612f9cc589b10bf76787f9aa4f0fd37', // Submarine
-            'geo_json_223786fa07ce4c645e9aa632279edd6d', // Storage Tanks
-            'geo_json_e1820dc43496457f7e8df085b7bfdaa6', // Intermodal Freight
-            'geo_json_74a8ff648bc5b9190beaecc887f54037'  // Spills Layer
+            'geo_json_8612f9cc589b10bf76787f9aa4f0fd37'  // Submarine
         ];
+        
+        const incidentLayerId = 'geo_json_74a8ff648bc5b9190beaecc887f54037'; // Spills Layer ONLY
 
-        // 4. Loop through each live layer map object and inspect its data features
-        foliumLayerIds.forEach(function(layerId) {
+        // 4a. Loop through PIPELINES layers exclusively for lines
+        pipelineLayerIds.forEach(function(layerId) {
             const liveLayer = window[layerId];
-            
-            // Make sure the layer exists and has data inside it
             if (liveLayer && typeof liveLayer.toGeoJSON === 'function') {
                 const layerGeoJSON = liveLayer.toGeoJSON();
-                
                 if (layerGeoJSON && layerGeoJSON.features) {
                     layerGeoJSON.features.forEach(function(feature) {
-                        
-                        // --- Process Pipeline Paths (Lines) ---
                         if (feature.geometry && (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString')) {
                             if (turf.booleanIntersects(feature, drawnPolygon)) {
-                                intersectingPipelinesCount++;
                                 
-                                const opName = feature.properties.Opername || feature.properties.operator || feature.properties.opername;
-                                if (opName) uniqueOperators.add(opName);
+                                const opName = feature.properties.Opername || feature.properties.operator || feature.properties.opername || 'Unknown Operator';
+                                const commodityRaw = feature.properties.COMMODITY || feature.properties.commodity || '';
                                 
+                                // Look for any specific unique pipeline ID key provided by the dataset
+                                const assetId = feature.properties.PIPELINE_ID || feature.properties.SUB_SYSTEM || feature.properties.OBJECTID || feature.properties.id || '';
+                                
+                                // Build a unique grouping key: If there's an asset id use it, otherwise fall back to Operator + Commodity combination
+                                const uniqueTrackingKey = assetId ? `${layerId}_${assetId}` : `${layerId}_${opName}_${commodityRaw}`;
+
+                                // Process type classification attributes
+                                const commodity = commodityRaw.toLowerCase();
+                                let calculatedCategory = 'Other Infrastructure';
+                                
+                                if (commodity.includes('crude') || layerId === 'geo_json_4b1d758048ef739b6042e56e6cc670cd') {
+                                    calculatedCategory = 'Crude Oil';
+                                } else if (commodity.includes('gas') || layerId === 'geo_json_9a5a8321701a3d88a35c68c0fc9c3769') {
+                                    calculatedCategory = 'Natural Gas';
+                                } else if (commodity.includes('product') || commodity.includes('petroleum') || layerId === 'geo_json_90c4b8a9f122b1ea491be72c37d83408') {
+                                    calculatedCategory = 'Petroleum Product';
+                                }
+
+                                // ONLY INCREMENT IF WE HAVEN'T MET THIS PIPELINE PATH IN THIS SHAPE YET
+                                if (!uniqueCrossingsTracker.has(uniqueTrackingKey)) {
+                                    uniqueCrossingsTracker.add(uniqueTrackingKey);
+                                    crossingBreakdown[calculatedCategory]++;
+                                }
+
+                                if (opName && opName !== 'Unknown Operator') uniqueOperators.add(opName);
+                                
+                                // Mileage calculations continue on every item to capture overall length sum
                                 try {
                                     const clippedSegment = turf.lineSplit(feature, drawnPolygon);
                                     if (clippedSegment.features.length > 0) {
@@ -84,23 +115,34 @@ window.addEventListener('load', function() {
                                 }
                             }
                         }
-                        
-                        // --- Process PHMSA Historical Incidents (Points) ---
-                        else if (feature.geometry && feature.geometry.type === 'Point') {
-                            if (turf.booleanPointInPolygon(feature, drawnPolygon)) {
-                                totalSpillsInZone++;
-                                
-                                const bbls = parseFloat(feature.properties.UNINTENTIONAL_RELEASE_BBLS || 0);
-                                totalBarrelsSpilled += bbls;
-                                
-                                const cause = feature.properties.CAUSE || "Facility Asset";
-                                spillCauses[cause] = (spillCauses[cause] || 0) + 1;
-                            }
-                        }
                     });
                 }
             }
         });
+
+        // Sum up total non-duplicated crossings from our separate binned items
+        let intersectingPipelinesCount = Object.values(crossingBreakdown).reduce((a, b) => a + b, 0);
+
+        // 4b. Scan INCIDENTS layer exclusively for points
+        const spillLayerObj = window[incidentLayerId];
+        if (spillLayerObj && typeof spillLayerObj.toGeoJSON === 'function') {
+            const spillGeoJSON = spillLayerObj.toGeoJSON();
+            if (spillGeoJSON && spillGeoJSON.features) {
+                spillGeoJSON.features.forEach(function(feature) {
+                    if (feature.geometry && feature.geometry.type === 'Point') {
+                        if (turf.booleanPointInPolygon(feature, drawnPolygon)) {
+                            totalSpillsInZone++;
+                            
+                            const bbls = parseFloat(feature.properties.UNINTENTIONAL_RELEASE_BBLS || 0);
+                            totalBarrelsSpilled += bbls;
+                            
+                            const cause = feature.properties.CAUSE || "Facility Asset";
+                            spillCauses[cause] = (spillCauses[cause] || 0) + 1;
+                        }
+                    }
+                });
+            }
+        }
 
         // 5. Final math translations
         const totalLengthMiles = totalLengthInZoneKm * 0.621371;
@@ -113,9 +155,9 @@ window.addEventListener('load', function() {
                 maxCauseCount = count;
                 topCause = cause;
             }
-
         }
-        
+
+        const maxCrossings = Math.max(...Object.values(crossingBreakdown), 1);
 
         // 6. Build the readout popup card layout matching main-ui.css & leaflet-custom.css
         const popupContent = `
@@ -130,8 +172,8 @@ window.addEventListener('load', function() {
                         Infrastructure in Zone
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #334155;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #64748b;">Pipeline Crossings</span>
+                        <div class="crossings-hover-row" style="display: flex; justify-content: space-between; cursor: help;">
+                            <span style="color: #64748b; border-bottom: 1px dotted #cbd5e1;">Pipeline Crossings</span>
                             <span style="font-weight: 600; color: #0f172a;">${intersectingPipelinesCount}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
@@ -171,6 +213,96 @@ window.addEventListener('load', function() {
             </div>
         `;
 
+        // 1. Bind the popup
         layer.bindPopup(popupContent).openPopup();
+
+        // 2. Build tracking mouse tooltip
+        let mouseTooltip = document.getElementById('crossings-mouse-tooltip');
+        if (!mouseTooltip) {
+            mouseTooltip = document.createElement('div');
+            mouseTooltip.id = 'crossings-mouse-tooltip';
+            mouseTooltip.style.cssText = `
+                position: fixed;
+                z-index: 10000;
+                display: none;
+                pointer-events: none;
+                background: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 12px;
+                width: 220px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+                font-family: 'Inter', -apple-system, sans-serif;
+                color: #1e293b;
+            `;
+            document.body.appendChild(mouseTooltip);
+        }
+        
+        mouseTooltip.innerHTML = `
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                Crossings Breakdown
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                        <span style="font-weight: 500;">Crude Oil</span>
+                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Crude Oil']}</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                        <div style="width: ${(crossingBreakdown['Crude Oil'] / maxCrossings) * 100}%; height: 100%; background: #e11d48;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                        <span style="font-weight: 500;">Natural Gas</span>
+                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Natural Gas']}</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                        <div style="width: ${(crossingBreakdown['Natural Gas'] / maxCrossings) * 100}%; height: 100%; background: #2563eb;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                        <span style="font-weight: 500;">Petroleum Product</span>
+                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Petroleum Product']}</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                        <div style="width: ${(crossingBreakdown['Petroleum Product'] / maxCrossings) * 100}%; height: 100%; background: #16a34a;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                        <span style="font-weight: 500;">Other Infrastructure</span>
+                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Other Infrastructure']}</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
+                        <div style="width: ${(crossingBreakdown['Other Infrastructure'] / maxCrossings) * 100}%; height: 100%; background: #475569;"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 3. Attach interactive trackers to row
+        layer.getPopup().on('add', function() {
+            const popupContainer = this._container;
+            const hoverRow = popupContainer.querySelector('.crossings-hover-row');
+
+            if (hoverRow) {
+                hoverRow.addEventListener('mouseenter', function() {
+                    mouseTooltip.style.display = 'block';
+                });
+                hoverRow.addEventListener('mousemove', function(event) {
+                    mouseTooltip.style.left = (event.clientX + 15) + 'px';
+                    mouseTooltip.style.top = (event.clientY + 15) + 'px';
+                });
+                hoverRow.addEventListener('mouseleave', function() {
+                    mouseTooltip.style.display = 'none';
+                });
+            }
+        });
+
+        layer.getPopup().on('remove', function() {
+            if (mouseTooltip) mouseTooltip.style.display = 'none';
+        });
     });
 });
