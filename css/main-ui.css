@@ -882,3 +882,115 @@ margin-top: 14px;
 font-size: 10px; color: #94a3b8;
 line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   MOBILE & TABLET OPTIMIZATIONS (Screens under 768px)
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* 1. Adjust Top Header Layout */
+  #top-header {
+    padding: 0 10px;
+  }
+  #top-header .header-sub, 
+  #top-header .header-divider, 
+  #top-header .header-badge {
+    display: none !important; /* Hide extra text to fit title and button */
+  }
+  #top-header .header-title {
+    font-size: 13px;
+  }
+  #tutorial-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  /* 2. Reposition Right Control Panel to Bottom Sheet or Toggle Drawer */
+  #ctrl-panel {
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 40vh; /* Takes up bottom 40% of the screen */
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  /* 3. Adjust Map view to compensate for the bottom panel area */
+  .folium-map {
+    height: calc(60% - 52px) !important;
+  }
+
+  /* 4. Fix Floating Elements overlapping the bottom sheet */
+  #instruction-banner {
+    bottom: calc(40vh + 12px); /* Floats safely just above the control panel */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90vw;
+    white-space: normal; /* Allow text wrapping on narrow devices */
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  #map-toast {
+    bottom: calc(40vh + 12px);
+  }
+
+  /* 5. Improve Grid elements inside the Spill Cost panel for small screens */
+  #spill-kpi-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Clean 3-column split */
+    gap: 4px;
+  }
+  .kpi-card {
+    min-width: unset;
+    padding: 6px 4px;
+  }
+  .kpi-val {
+    font-size: 12px;
+  }
+  
+  /* 6. Expand Modals for easier touch readability */
+  #meth-modal {
+    width: 94vw !important;
+    max-height: 80vh !important;
+  }
+
+  #tutorial-modal {
+    width: 94vw !important;
+    max-height: 85vh !important;
+    overflow-y: auto; 
+    
+    transform: translateX(0) !important; 
+  }
+
+  #tutorial-modal .tut-header {
+    padding: 16px 18px 12px;
+  }
+  #tutorial-modal .tut-body {
+    padding: 16px 18px;
+  }
+  #tutorial-modal .tut-step-body {
+    min-height: unset; /* Remove fixed height constraint on mobile */
+    font-size: 12.5px;
+  }
+  #tutorial-modal .tut-footer {
+    padding: 12px 18px 14px;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 360px) {
+  #ctrl-panel {
+    height: 45vh;
+  }
+  .folium-map {
+    height: calc(55% - 52px) !important;
+  }
+  #instruction-banner, #map-toast {
+    bottom: calc(45vh + 10px);
+  }
+}
+
