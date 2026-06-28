@@ -59,6 +59,21 @@ color: #94a3b8;
 letter-spacing: .3px;
 }
 
+#contact-btn {
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 6px 12px;
+background: #dde0e2;
+color: #000000;
+border: none;
+border-radius: 6px;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+transition: background .15s;
+}
+#contact-btn:hover { background: #d9dbde; }
 
 
 /* ── Right panel (PANEL NAVIGATION style) ── */
@@ -389,15 +404,7 @@ font-weight: 600;
 }
 
 /* ── Methodology modal ── */
-#meth-backdrop {
-display: none;
-position: fixed; inset: 0;
-background: rgba(0,0,0,.45);
-z-index: 9500;
-align-items: center;
-justify-content: center;
-}
-#meth-backdrop.open { display: flex; }
+
 #meth-modal {
 background: #fff;
 border: 1px solid #e2e8f0;
@@ -494,15 +501,7 @@ border-radius: 5px; padding: 6px 10px; margin-bottom: 10px;
 .sim-age-note strong { color: #475569; }
 
 /* ── Tutorial popup ── */
-#tutorial-backdrop {
-display: none;
-position: fixed; inset: 0;
-background: rgba(0,0,0,.4);
-z-index: 10000;
-align-items: center;
-justify-content: center;
-}
-#tutorial-backdrop.open { display: flex; }
+
 #tutorial-modal {
 background: #fff;
 border-radius: 14px;
@@ -637,23 +636,6 @@ cursor: pointer;
 #tutorial-modal .tut-checkbox-row input { cursor: pointer; accent-color: #1e40af; }
 
 
-
-
-
-
-
-
-/* ── Overlay backdrop ── */
-#sim-backdrop {
-display: none;
-position: fixed; inset: 0;
-background: rgba(0,0,0,.45);
-z-index: 9500;
-align-items: center;
-justify-content: center;
-}
-#sim-backdrop.open { display: flex; }
-
 /* ── Modal card ── */
 #sim-modal {
 background: #fff;
@@ -667,6 +649,7 @@ max-width: 96vw;
 max-height: 90vh;
 overflow-y: auto;
 position: relative;
+transform: translateX(-140px);
 }
 
 /* ── Modal header ── */
@@ -904,6 +887,10 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     padding: 4px 8px;
     font-size: 11px;
   }
+  #contact-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
 
   /* 2. Reposition Right Control Panel to Bottom Sheet or Toggle Drawer */
   #ctrl-panel {
@@ -994,3 +981,174 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
   }
 }
 
+
+
+/* ── Contact modal styling ─────────────────────────────────────── */
+/* ── Unified Animated Backdrops ─────────────────────────────────── */
+#tutorial-backdrop,
+#meth-backdrop,
+#sim-backdrop,
+.contact-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.45); /* Elegant neutral dark tint, no blue */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex; /* Kept flex so centering works perfectly */
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 3000;
+}
+
+/* Unified Open State */
+#tutorial-backdrop.open,
+#meth-backdrop.open,
+#sim-backdrop.open,
+.contact-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+.contact-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    transform: translateX(-140px);
+
+}
+
+.contact-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    position: relative;
+    background: #f8fafc;
+}
+
+.contact-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.contact-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 3px;
+}
+
+.contact-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: color 0.15s ease;
+    line-height: 1;
+    padding: 4px;
+}
+
+.contact-close:hover {
+    color: #475569;
+}
+
+.contact-body {
+    padding: 20px;
+    color: #334155;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.contact-intro {
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+    color: #475569;
+}
+
+/* Internal Card Selection Grid Elements */
+.contact-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.contact-option-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.contact-option-card:hover,
+.contact-option-card:focus,
+.contact-option-card:active {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    text-decoration: none;
+}
+
+.contact-option-card:active {
+    transform: scale(0.99);
+}
+
+.contact-option-card i {
+    font-size: 22px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+}
+
+.contact-option-card:hover i {
+    color: #0f172a; /* Dynamic icon color pop on cursor hover */
+}
+
+.contact-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contact-card-text strong {
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.contact-card-text span {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.contact-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+}

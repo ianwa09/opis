@@ -730,13 +730,8 @@
     
             geo_json_74a8ff648bc5b9190beaecc887f54037.addTo(feature_group_1d77eab727291666943a06c2652de70b);
         
-    
 
-            // ═══════════════════════════════════════════════════════════════
-            //  CUSTOM CONTROL PANEL – injected after Leaflet data is ready
-            // ═══════════════════════════════════════════════════════════════
-
-            // ── Tile error suppression ──────────────────────────────────────
+            // tile error suppression
             var _origCreateTile = L.TileLayer.prototype.createTile;
             L.TileLayer.prototype.createTile = function(coords, done) {
                 var tile = _origCreateTile.call(this, coords, done);
@@ -744,7 +739,7 @@
                 return tile;
             };
 
-            // ── Basemap layers ──────────────────────────────────────────────
+            // Basemap layers 
             var basemaps = {
                 'Dark':      tile_layer_58d053caaccf3eeb4ec370a7b665d075,
                 'Satellite': tile_layer_65789e7f57e18808171f2faaa5fcc82e,
@@ -753,7 +748,7 @@
             var activeBasemap = 'Dark';
             tile_layer_58d053caaccf3eeb4ec370a7b665d075.addTo(map_10b250abf3b9fb60cf6682f90e22c04c);
 
-            // ── Pipeline overlay layers (mutually exclusive) ────────────────
+            // Pipeline overlay layers (mutually exclusive) 
             var pipelineLayers = {
                 'Crude Oil':            feature_group_5b0dfed6baae0869165359db3af8c544,
                 'Natural Gas':          feature_group_d79a63b58ef60015b33a0f6e11d5dd61,
@@ -774,11 +769,10 @@
             };
             var activePipeline = null;
 
-            // Spills layer (separate)
+            // Spills layer 
             var spillsLayer = feature_group_1d77eab727291666943a06c2652de70b;
             var spillsOn = false;
 
-            // ── Toast helper ────────────────────────────────────────────────
             var _toastTimer = null;
             function showToast(msg) {
                 var t = document.getElementById('map-toast');
@@ -788,7 +782,6 @@
                 _toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1800);
             }
 
-            // ── Build panel HTML ────────────────────────────────────────────
             var panelHTML = `
             <!-- ── Top header bar ── -->
             <div id="top-header">
@@ -797,6 +790,7 @@
               <span class="header-sub">Oil Pipeline Impact Simulator</span>
               <div class="header-right">
                 <span class="header-badge">PHMSA &middot; EIA &middot; DataLumos</span>
+                <button id="contact-btn"><i class="bi bi-envelope-fill"></i>Contact</button>
                 <button id="tutorial-btn">&#9432; How to use this tool</button>
               </div>
             </div>
@@ -878,15 +872,14 @@
             `;
 
             document.body.insertAdjacentHTML('beforeend', panelHTML);
-
-            // ── Instruction banner ──────────────────────────────────────────
+            
+            // instruction banner
             document.body.insertAdjacentHTML('beforeend', `
             <div id="instruction-banner">
               <span><strong>Select a pipeline layer</strong> in the panel, then <strong>click any line</strong> to run the Spill Cost Simulator</span>
             </div>
             `);
 
-            // ── Tutorial modal ──────────────────────────────────────────────
 
 </script>
 

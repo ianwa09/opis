@@ -27,27 +27,27 @@ body: 'Switch to the <strong>Spill History</strong> tab to toggle on a layer of 
 {
 icon: 'bi-file-earmark-text', 
 title: 'Data Sources & Methodology',
-body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the Spill History tab to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>You\'re all set. Explore the map!'
+body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the Spill History tab to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>Contact us at <a href="mailto:iwang@imsa.edu">iwang@imsa.edu</a> and <a href="mailto:olee@imsa.edu">olee@imsa.edu</a> with any questions or suggestions.<br><br>You\'re all set. Explore the map!'
 }
 ];
 var tutStep = 0;
 
 function renderTutStep() {
-var s = tutorialSteps[tutStep];
-document.getElementById('tut-icon').className = 'tut-icon bi ' + s.icon;
-document.getElementById('tut-step-title').textContent = s.title;
-document.getElementById('tut-step-body').innerHTML = s.body;
-document.getElementById('tut-step-num').textContent = (tutStep + 1) + ' of ' + tutorialSteps.length;
-// dots
-var dots = document.querySelectorAll('.tut-dot');
-dots.forEach(function(d, i) {
-d.className = 'tut-dot' + (i === tutStep ? ' active' : i < tutStep ? ' done' : '');
-});
-// prev button visibility
-document.getElementById('tut-prev-btn').style.display = tutStep === 0 ? 'none' : '';
-// next button label
-var nextBtn = document.getElementById('tut-next-btn');
-nextBtn.textContent = tutStep === tutorialSteps.length - 1 ? 'Get started →' : 'Next →';
+    var s = tutorialSteps[tutStep];
+    document.getElementById('tut-icon').className = 'tut-icon bi ' + s.icon;
+    document.getElementById('tut-step-title').textContent = s.title;
+    document.getElementById('tut-step-body').innerHTML = s.body;
+    document.getElementById('tut-step-num').textContent = (tutStep + 1) + ' of ' + tutorialSteps.length;
+    // dots
+    var dots = document.querySelectorAll('.tut-dot');
+    dots.forEach(function(d, i) {
+    d.className = 'tut-dot' + (i === tutStep ? ' active' : i < tutStep ? ' done' : '');
+    });
+    // prev button visibility
+    document.getElementById('tut-prev-btn').style.display = tutStep === 0 ? 'none' : '';
+    // next button label
+    var nextBtn = document.getElementById('tut-next-btn');
+    nextBtn.textContent = tutStep === tutorialSteps.length - 1 ? 'Get started →' : 'Next →';
 }
 
 document.body.insertAdjacentHTML('beforeend', `
@@ -85,11 +85,37 @@ document.body.insertAdjacentHTML('beforeend', `
 
 renderTutStep();
 
+
+// Helper function to close any open modals on the screen
+function closeAllModals() {
+    var openBackdrops = document.querySelectorAll('.contact-backdrop, #tutorial-backdrop, #meth-backdrop, #sim-backdrop');
+    openBackdrops.forEach(function(backdrop) {
+        backdrop.classList.remove('open');
+    });
+    
+    // Optional: Reset tutorial step back to 0 if it was closed
+    if (typeof currentStep !== 'undefined') {
+        currentStep = 0;
+        if (typeof showStep === 'function') { showStep(0); }
+    }
+}
 // Function to handle closing and saving preference
 function closeAndSaveTutorial() {
     document.getElementById('tutorial-backdrop').classList.remove('open');
 }
-
+// Close the tutorial completely if the user clicks out onto the backdrop overlay
+document.getElementById('tutorial-backdrop').addEventListener('click', function(e) {
+    // Only trigger if they clicked the backdrop itself, not the modal card inside it
+    if (e.target === this) {
+        this.classList.remove('open');
+        
+        // Reset the tutorial back to the beginning step for the next time it opens
+        currentStep = 0;
+        if (typeof showStep === 'function') {
+            showStep(currentStep);
+        }
+    }
+});
 // Close button click
 document.getElementById('tut-close-btn').addEventListener('click', closeAndSaveTutorial);
 
@@ -106,6 +132,7 @@ document.getElementById('tut-prev-btn').addEventListener('click', function() {
 if (tutStep > 0) { tutStep--; renderTutStep(); }
 });
 document.getElementById('tutorial-btn').addEventListener('click', function() {
+    closeAllModals();
     tutStep = 0;
     renderTutStep();
     
@@ -133,7 +160,67 @@ document.addEventListener('change', function(e) {
     }
 });
 
-// ── Methodology modal ───────────────────────────────────────────
+
+ 
+document.body.insertAdjacentHTML('beforeend', `
+<div id="contact-backdrop" class="contact-backdrop">
+<div id="contact-modal" class="contact-modal">
+<div class="contact-header">
+    <h3>Get in Touch</h3>
+    <div class="contact-subtitle">Data sharing, media inquiries, & collaborations</div>
+    <button class="contact-close" id="contact-close-btn">&#x2715;</button>
+</div>
+<div class="contact-body">
+    <p class="contact-intro">
+        This tool is built on open-source, archived public infrastructure data. Whether you are a researcher, a journalist, or a community advocate, we want to hear how you are using it, and if you have any questions.
+    </p>
+    
+    <div class="contact-options-list">
+        <a href="https://github.com/ianwa09/opis/issues" target="_blank" rel="noopener" class="contact-option-card">
+            <i class="bi bi-github"></i>
+            <div class="contact-card-text">
+                <strong>Report an Issue or Bug</strong>
+                <span>Found a missing pipeline segment or an issue with the model? Let us know on GitHub.</span>
+            </div>
+        </a>
+        <a href="mailto:iwang@imsa.edu,olee@imsa.edu?subject=OPIS" class="contact-option-card">
+            <i class="bi bi-envelope-fill"></i>
+            <div class="contact-card-text">
+                <strong>Email Us</strong>
+                <span>Reach out directly with questions, feedback, or collaboration opportunities.</span>
+            </div>
+        </a>
+    </div>
+</div>
+</div>
+</div>
+`);
+
+// Contact modal controls
+document.getElementById('contact-btn').addEventListener('click', function() {
+    closeAllModals();
+    
+    document.getElementById('contact-backdrop').classList.add('open');
+});
+
+['contact-close-btn'].forEach(function(id) {
+    var btn = document.getElementById(id);
+    if (btn) {
+        btn.addEventListener('click', function() {
+            document.getElementById('contact-backdrop').classList.remove('open');
+        });
+    }
+});
+
+// Close if they click the background backdrop layout
+document.getElementById('contact-backdrop').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('open');
+    }
+});
+
+
+// Methodology modal
 document.body.insertAdjacentHTML('beforeend', `
 <div id="meth-backdrop">
 <div id="meth-modal">
@@ -250,7 +337,7 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>
 `);
 
-// ── Methodology modal controls ──────────────────────────────────
+// Methodology modal controls
 document.getElementById('meth-btn').addEventListener('click', function() {
 document.getElementById('meth-backdrop').classList.add('open');
 });
@@ -261,7 +348,7 @@ document.getElementById('meth-backdrop').addEventListener('click', function(e) {
 if (e.target === this) this.classList.remove('open');
 });
 
-// ── KPI values (static from PHMSA 2015-2024 dataset summary) ──
+// KPI values (static from PHMSA 2015-2024 dataset summary) 
 document.getElementById('kpi-total').textContent = '2,847';
 document.getElementById('kpi-bbls').textContent = '127';
 document.getElementById('kpi-cost').textContent = '$1.4M';
@@ -276,7 +363,7 @@ btn.addEventListener('click', function() {
 });
 });
 
-// ── Basemap switching ────────────────────────────────────────────
+// Basemap switching
 document.querySelectorAll('.bm-btn').forEach(function(btn) {
 btn.addEventListener('click', function() {
     var name = btn.dataset.bm;
@@ -289,11 +376,11 @@ btn.addEventListener('click', function() {
 });
 });
 
-// ── Pipeline radio selection (one at a time) ────────────────────
+// Pipeline selection
 document.querySelectorAll('#pipeline-list li').forEach(function(li) {
 li.addEventListener('click', function() {
     var name = li.dataset.layer;
-    // If already selected, behave like clear
+    // If already selected -> clear
     if (activePipeline === name) {
         map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[name]);
         activePipeline = null;
@@ -317,7 +404,7 @@ li.addEventListener('click', function() {
 });
 });
 
-// ── Clear button ─────────────────────────────────────────────────
+// Clear button
 document.getElementById('ctrl-clear-btn').addEventListener('click', function() {
 if (activePipeline !== null) {
     map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[activePipeline]);
@@ -329,29 +416,26 @@ if (activePipeline !== null) {
 }
 });
 
-// ── Spills toggle ────────────────────────────────────────────────
+// toggle spills
 function setSpills(on) {
-spillsOn = on;
-document.getElementById('spills-checkbox').checked = on;
-if (on) {
-    showToast('Loading spill data…');
-    setTimeout(function() { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(spillsLayer); }, 30);
-} else {
-    map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(spillsLayer);
-}
+    spillsOn = on;
+    document.getElementById('spills-checkbox').checked = on;
+    if (on) {
+        showToast('Loading spill data…');
+        setTimeout(function() { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(spillsLayer); }, 30);
+    } else {
+        map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(spillsLayer);
+    }
 }
 document.getElementById('spills-toggle').addEventListener('click', function() {
-setSpills(!spillsOn);
+    setSpills(!spillsOn);
 });
 document.getElementById('spills-checkbox').addEventListener('change', function() {
-setSpills(this.checked);
+    setSpills(this.checked);
 });
 
-// ══════════════════════════════════════════════════════════════
 //  SPILL COST SIMULATOR
-// ══════════════════════════════════════════════════════════════
 
-// ── Inject modal HTML ─────────────────────────────────────────
 document.body.insertAdjacentHTML('beforeend', `
 <div id="sim-backdrop">
 <div id="sim-modal">
@@ -450,7 +534,7 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>
 `);
 
-// ── Embedded OLS Regression Model ────────────────────────────
+// Embedded OLS Regression Model:
 // Coefficients derived from PHMSA crude oil incident data (2015-2024)
 // Dependent variable: log1p(ADJUSTED_COST)
 // R-squared_adj ~ 0.61, N ~ 2,400 incidents
@@ -489,34 +573,34 @@ var COST_SPLIT = {
 'Other':            { pct: 0.07, color: '#95a5a6' },
 };
 
-// ── State detection from lat/lng ──────────────────────────────
+// State detection from lat/lng
 // Bounding boxes for all 48 contiguous states + AK + HI
 var STATE_BOXES = [
-{s:'ME',n:47.5,S:43.0,w:-71.1,e:-66.9},{s:'NH',n:45.3,S:42.7,w:-72.6,e:-70.6},
-{s:'VT',n:45.0,S:42.7,w:-73.5,e:-71.5},{s:'MA',n:42.9,S:41.2,w:-73.5,e:-69.9},
-{s:'RI',n:42.0,S:41.1,w:-71.9,e:-71.1},{s:'CT',n:42.1,S:40.9,w:-73.7,e:-71.8},
-{s:'NY',n:45.0,S:40.5,w:-79.8,e:-71.9},{s:'NJ',n:41.4,S:38.9,w:-75.6,e:-73.9},
-{s:'PA',n:42.3,S:39.7,w:-80.5,e:-74.7},{s:'DE',n:39.8,S:38.4,w:-75.8,e:-75.0},
-{s:'MD',n:39.7,S:37.9,w:-79.5,e:-75.0},{s:'VA',n:39.5,S:36.5,w:-83.7,e:-75.2},
-{s:'WV',n:40.6,S:37.2,w:-82.6,e:-77.7},{s:'NC',n:36.6,S:33.8,w:-84.3,e:-75.5},
-{s:'SC',n:35.2,S:32.0,w:-83.4,e:-78.5},{s:'GA',n:35.0,S:30.4,w:-85.6,e:-80.8},
-{s:'FL',n:31.0,S:24.5,w:-87.6,e:-80.0},{s:'AL',n:35.0,S:30.2,w:-88.5,e:-84.9},
-{s:'MS',n:35.0,S:30.2,w:-91.7,e:-88.1},{s:'TN',n:36.7,S:35.0,w:-90.3,e:-81.6},
-{s:'KY',n:39.1,S:36.5,w:-89.6,e:-81.9},{s:'OH',n:42.3,S:38.4,w:-84.8,e:-80.5},
-{s:'IN',n:41.8,S:37.8,w:-88.1,e:-84.8},{s:'MI',n:48.3,S:41.7,w:-90.4,e:-82.1},
-{s:'WI',n:47.1,S:42.5,w:-92.9,e:-86.8},{s:'IL',n:42.5,S:36.9,w:-91.5,e:-87.0},
-{s:'MN',n:49.4,S:43.5,w:-97.2,e:-89.5},{s:'IA',n:43.5,S:40.4,w:-96.6,e:-90.1},
-{s:'MO',n:40.6,S:36.0,w:-95.8,e:-89.1},{s:'AR',n:36.5,S:33.0,w:-94.6,e:-89.6},
-{s:'LA',n:33.0,S:28.9,w:-94.1,e:-88.8},{s:'TX',n:36.5,S:25.8,w:-106.7,e:-93.5},
-{s:'OK',n:37.0,S:33.6,w:-103.0,e:-94.4},{s:'KS',n:40.0,S:36.9,w:-102.1,e:-94.6},
-{s:'NE',n:43.0,S:40.0,w:-104.1,e:-95.3},{s:'SD',n:45.9,S:42.5,w:-104.1,e:-96.4},
-{s:'ND',n:49.0,S:45.9,w:-104.1,e:-96.5},{s:'MT',n:49.0,S:44.4,w:-116.1,e:-104.0},
-{s:'WY',n:45.0,S:41.0,w:-111.1,e:-104.0},{s:'CO',n:41.0,S:37.0,w:-109.1,e:-102.0},
-{s:'NM',n:37.0,S:31.3,w:-109.1,e:-103.0},{s:'AZ',n:37.0,S:31.3,w:-114.8,e:-109.0},
-{s:'UT',n:42.0,S:37.0,w:-114.1,e:-109.0},{s:'NV',n:42.0,S:35.0,w:-120.0,e:-114.0},
-{s:'ID',n:49.0,S:42.0,w:-117.3,e:-111.0},{s:'WA',n:49.0,S:45.5,w:-124.8,e:-116.9},
-{s:'OR',n:46.3,S:42.0,w:-124.6,e:-116.5},{s:'CA',n:42.0,S:32.5,w:-124.5,e:-114.1},
-{s:'AK',n:71.5,S:54.0,w:-168.0,e:-130.0},{s:'HI',n:22.5,S:18.0,w:-160.0,e:-154.0}
+    {s:'ME',n:47.5,S:43.0,w:-71.1,e:-66.9},{s:'NH',n:45.3,S:42.7,w:-72.6,e:-70.6},
+    {s:'VT',n:45.0,S:42.7,w:-73.5,e:-71.5},{s:'MA',n:42.9,S:41.2,w:-73.5,e:-69.9},
+    {s:'RI',n:42.0,S:41.1,w:-71.9,e:-71.1},{s:'CT',n:42.1,S:40.9,w:-73.7,e:-71.8},
+    {s:'NY',n:45.0,S:40.5,w:-79.8,e:-71.9},{s:'NJ',n:41.4,S:38.9,w:-75.6,e:-73.9},
+    {s:'PA',n:42.3,S:39.7,w:-80.5,e:-74.7},{s:'DE',n:39.8,S:38.4,w:-75.8,e:-75.0},
+    {s:'MD',n:39.7,S:37.9,w:-79.5,e:-75.0},{s:'VA',n:39.5,S:36.5,w:-83.7,e:-75.2},
+    {s:'WV',n:40.6,S:37.2,w:-82.6,e:-77.7},{s:'NC',n:36.6,S:33.8,w:-84.3,e:-75.5},
+    {s:'SC',n:35.2,S:32.0,w:-83.4,e:-78.5},{s:'GA',n:35.0,S:30.4,w:-85.6,e:-80.8},
+    {s:'FL',n:31.0,S:24.5,w:-87.6,e:-80.0},{s:'AL',n:35.0,S:30.2,w:-88.5,e:-84.9},
+    {s:'MS',n:35.0,S:30.2,w:-91.7,e:-88.1},{s:'TN',n:36.7,S:35.0,w:-90.3,e:-81.6},
+    {s:'KY',n:39.1,S:36.5,w:-89.6,e:-81.9},{s:'OH',n:42.3,S:38.4,w:-84.8,e:-80.5},
+    {s:'IN',n:41.8,S:37.8,w:-88.1,e:-84.8},{s:'MI',n:48.3,S:41.7,w:-90.4,e:-82.1},
+    {s:'WI',n:47.1,S:42.5,w:-92.9,e:-86.8},{s:'IL',n:42.5,S:36.9,w:-91.5,e:-87.0},
+    {s:'MN',n:49.4,S:43.5,w:-97.2,e:-89.5},{s:'IA',n:43.5,S:40.4,w:-96.6,e:-90.1},
+    {s:'MO',n:40.6,S:36.0,w:-95.8,e:-89.1},{s:'AR',n:36.5,S:33.0,w:-94.6,e:-89.6},
+    {s:'LA',n:33.0,S:28.9,w:-94.1,e:-88.8},{s:'TX',n:36.5,S:25.8,w:-106.7,e:-93.5},
+    {s:'OK',n:37.0,S:33.6,w:-103.0,e:-94.4},{s:'KS',n:40.0,S:36.9,w:-102.1,e:-94.6},
+    {s:'NE',n:43.0,S:40.0,w:-104.1,e:-95.3},{s:'SD',n:45.9,S:42.5,w:-104.1,e:-96.4},
+    {s:'ND',n:49.0,S:45.9,w:-104.1,e:-96.5},{s:'MT',n:49.0,S:44.4,w:-116.1,e:-104.0},
+    {s:'WY',n:45.0,S:41.0,w:-111.1,e:-104.0},{s:'CO',n:41.0,S:37.0,w:-109.1,e:-102.0},
+    {s:'NM',n:37.0,S:31.3,w:-109.1,e:-103.0},{s:'AZ',n:37.0,S:31.3,w:-114.8,e:-109.0},
+    {s:'UT',n:42.0,S:37.0,w:-114.1,e:-109.0},{s:'NV',n:42.0,S:35.0,w:-120.0,e:-114.0},
+    {s:'ID',n:49.0,S:42.0,w:-117.3,e:-111.0},{s:'WA',n:49.0,S:45.5,w:-124.8,e:-116.9},
+    {s:'OR',n:46.3,S:42.0,w:-124.6,e:-116.5},{s:'CA',n:42.0,S:32.5,w:-124.5,e:-114.1},
+    {s:'AK',n:71.5,S:54.0,w:-168.0,e:-130.0},{s:'HI',n:22.5,S:18.0,w:-160.0,e:-154.0}
 ];
 
 function detectState(lat, lng) {
@@ -524,14 +608,14 @@ for (var i = 0; i < STATE_BOXES.length; i++) {
     var b = STATE_BOXES[i];
     if (lat >= b.S && lat <= b.n && lng >= b.w && lng <= b.e) return b.s;
 }
-return 'TX'; // fallback
+return 'TX'; 
 }
 
-// ── Simulator state ───────────────────────────────────────────
+// Simulator state 
 var simState = null; // detected 2-letter state code
 var simClickLatLng = null;
 
-// ── Open simulator ────────────────────────────────────────────
+// Open simulator
 function openSimulator(props, latlng) {
 simClickLatLng = latlng;
 simState = detectState(latlng.lat, latlng.lng);
@@ -553,7 +637,7 @@ gtag('event', 'run_simulation', {
     });
 }
 
-// ── Close simulator ───────────────────────────────────────────
+// Close simulator  
 document.getElementById('sim-close-btn').addEventListener('click', function() {
 document.getElementById('sim-backdrop').classList.remove('open');
 });
@@ -566,7 +650,7 @@ document.getElementById('sim-bbls').addEventListener('input', function() {
 document.getElementById('sim-bbls-val').textContent = this.value + ' bbls';
 });
 
-// ── Run simulation ────────────────────────────────────────────
+// ── Run simulation  ─
 document.getElementById('sim-run-btn').addEventListener('click', function() {
 var age    = 50; // Hardcoded: 50-year equipment age baseline
 var bbls   = parseFloat(document.getElementById('sim-bbls').value);
@@ -599,7 +683,7 @@ var predCost  = Math.expm1(linPred);
 var lowerMean = Math.expm1(linPred - 1.96 * OLS.se_mean);
 var upperMean = Math.expm1(linPred + 1.96 * OLS.se_mean);
 
-// ── Format currency ───────────────────────────────────────
+// Format currency 
 function fmt(v) {
     if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
     if (v >= 1e3) return '$' + Math.round(v).toLocaleString();
@@ -611,7 +695,7 @@ document.getElementById('res-ci').innerHTML =
     '95% Confidence Interval: <strong>' +
     fmt(lowerMean) + ' &mdash; ' + fmt(upperMean) + '</strong>';
 
-// ── Cost breakdown bars ───────────────────────────────────
+// Cost breakdown bars
 var breakdown = document.getElementById('res-breakdown');
 breakdown.innerHTML = '';
 var cats = Object.keys(COST_SPLIT);
@@ -628,7 +712,7 @@ cats.forEach(function(cat) {
     breakdown.appendChild(row);
 });
 
-// ── Driver pills ──────────────────────────────────────────
+// Driver pills  
 var drivers = document.getElementById('res-drivers');
 drivers.innerHTML = '';
 var pills = [];
