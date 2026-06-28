@@ -167,7 +167,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="contact-modal" class="contact-modal">
 <div class="contact-header">
     <h3>Get in Touch</h3>
-    <div class="contact-subtitle">Data sharing, media inquiries, & collaborations</div>
+    <div class="contact-subtitle">Data sharing, inquiries, and feature requests</div>
     <button class="contact-close" id="contact-close-btn">&#x2715;</button>
 </div>
 <div class="contact-body">
