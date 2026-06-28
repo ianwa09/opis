@@ -41,7 +41,6 @@ window.addEventListener('load', function() {
             'feature_group_5b0dfed6baae0869165359db3af8c544',  // Crude Oil
             'feature_group_d79a63b58ef60015b33a0f6e11d5dd61',  // Natural Gas
             'feature_group_40bced8c6f59d655fde0781991531044',  // Petroleum Product
-            'feature_group_357123ba0331538e411a1b41ab21294c',  // (unlabelled)
             'feature_group_e70ec41a953fce78fa54a7028d1d3046',  // Submarine
             'feature_group_f4540c23926000afe26df47786ce488e',  // POL Storage Tanks
             'feature_group_e4a7cd78a21b50f69a050c24ccfdfa61',  // Intermodal Freight
@@ -196,8 +195,7 @@ window.addEventListener('load', function() {
         const popupContent = `
             <div style="font-family: 'Inter', -apple-system, sans-serif; min-width: 260px; padding: 4px; color: #1e293b;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                    <div style="width: 3px; height: 16px; background-color: #3b82f6; border-radius: 2px;"></div>
-                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;">Boundary Analysis</h4>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;"><i class="bi bi-bullseye"></i> Boundary Analysis</h4> 
                 </div>
                 
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
