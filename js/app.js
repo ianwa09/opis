@@ -645,12 +645,12 @@ document.getElementById('sim-backdrop').addEventListener('click', function(e) {
 if (e.target === this) this.classList.remove('open');
 });
 
-// ── Slider live readouts ──────────────────────────────────────
+// Slider live readouts 
 document.getElementById('sim-bbls').addEventListener('input', function() {
 document.getElementById('sim-bbls-val').textContent = this.value + ' bbls';
 });
 
-// ── Run simulation  ─
+// Run simulation 
 document.getElementById('sim-run-btn').addEventListener('click', function() {
 var age    = 50; // Hardcoded: 50-year equipment age baseline
 var bbls   = parseFloat(document.getElementById('sim-bbls').value);
