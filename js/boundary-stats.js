@@ -22,9 +22,20 @@ window.addEventListener('load', function() {
         removalMode: true
     });
 
+    // 2b. Opt-in mode: Geoman ignores ALL layers by default.
+    // Data layers (pipelines, spills) are never opted in, so Geoman can't
+    // snap to, hover, or delete them. Drawn boundary shapes are opted in
+    // after creation so the eraser can still remove them.
+    // Note: L.PM.setOptIn is a static call, not on the map instance.
+    L.PM.setOptIn(true);
+
 
     // 3. Listen for when a shape is drawn
     mapInstance.on('pm:create', function(e) {
+        // Opt this drawn boundary into Geoman so the eraser can delete it
+        e.layer.options.pmIgnore = false;
+        L.PM.reInitLayer(e.layer);
+
         const layer = e.layer;
         const drawnPolygon = layer.toGeoJSON();
 
@@ -69,13 +80,14 @@ window.addEventListener('load', function() {
                             if (turf.booleanIntersects(feature, drawnPolygon)) {
                                 
                                 const opName = feature.properties.Opername || feature.properties.operator || feature.properties.opername || 'Unknown Operator';
+                                const pipeName = feature.properties.Pipename || feature.properties.pipename || '';
                                 const commodityRaw = feature.properties.COMMODITY || feature.properties.commodity || '';
                                 
                                 // Look for any specific unique pipeline ID key provided by the dataset
                                 const assetId = feature.properties.PIPELINE_ID || feature.properties.SUB_SYSTEM || feature.properties.OBJECTID || feature.properties.id || '';
                                 
-                                // Build a unique grouping key: If there's an asset id use it, otherwise fall back to Operator + Commodity combination
-                                const uniqueTrackingKey = assetId ? `${layerId}_${assetId}` : `${layerId}_${opName}_${commodityRaw}`;
+                                // Build a unique grouping key: If there's an asset id use it, otherwise fall back to Operator + PipelineName + Commodity combination
+                                const uniqueTrackingKey = assetId ? `${layerId}_${assetId}` : `${layerId}_${opName}_${pipeName}_${commodityRaw}`;
 
                                 // Process type classification attributes
                                 const commodity = commodityRaw.toLowerCase();
@@ -213,8 +225,8 @@ window.addEventListener('load', function() {
             </div>
         `;
 
-        // 1. Bind the popup
-        layer.bindPopup(popupContent).openPopup();
+        // 1. Bind the popup (don't open yet — need to wire the tooltip first)
+        layer.bindPopup(popupContent);
 
         // 2. Build tracking mouse tooltip
         let mouseTooltip = document.getElementById('crossings-mouse-tooltip');
@@ -283,22 +295,32 @@ window.addEventListener('load', function() {
         `;
 
         // 3. Attach interactive trackers to row
-        layer.getPopup().on('add', function() {
-            const popupContainer = this._container;
+        function wireHoverRow() {
+            const popupContainer = layer.getPopup()._container;
+            if (!popupContainer) return;
             const hoverRow = popupContainer.querySelector('.crossings-hover-row');
+            if (!hoverRow) return;
 
-            if (hoverRow) {
-                hoverRow.addEventListener('mouseenter', function() {
-                    mouseTooltip.style.display = 'block';
-                });
-                hoverRow.addEventListener('mousemove', function(event) {
-                    mouseTooltip.style.left = (event.clientX + 15) + 'px';
-                    mouseTooltip.style.top = (event.clientY + 15) + 'px';
-                });
-                hoverRow.addEventListener('mouseleave', function() {
-                    mouseTooltip.style.display = 'none';
-                });
-            }
+            hoverRow.addEventListener('mouseenter', function() {
+                mouseTooltip.style.display = 'block';
+            });
+            hoverRow.addEventListener('mousemove', function(event) {
+                mouseTooltip.style.left = (event.clientX + 15) + 'px';
+                mouseTooltip.style.top = (event.clientY + 15) + 'px';
+            });
+            hoverRow.addEventListener('mouseleave', function() {
+                mouseTooltip.style.display = 'none';
+            });
+        }
+
+        // Open the popup now — _container is available immediately after this call
+        layer.openPopup();
+        wireHoverRow();
+
+        // Re-wire when popup is reopened after being moved/closed by a new boundary click
+        mapInstance.on('popupopen', function onPopupOpen(e) {
+            if (e.popup !== layer.getPopup()) return;
+            wireHoverRow();
         });
 
         layer.getPopup().on('remove', function() {
