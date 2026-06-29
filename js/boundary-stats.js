@@ -32,28 +32,8 @@ window.addEventListener('load', function() {
 
 
     // 3. Listen for when a shape is drawn
-    mapInstance.on('pm:create', function(e) {
-        // Opt this drawn boundary into Geoman so the eraser can delete it
-        e.layer.options.pmIgnore = false;
-        L.PM.reInitLayer(e.layer);
-
-        // Bring all data feature groups to front so they sit above the boundary
-        // and the normal cursor can interact with pipelines/spills inside it
-        const dataFeatureGroups = [
-            'feature_group_5b0dfed6baae0869165359db3af8c544',  // Crude Oil
-            'feature_group_d79a63b58ef60015b33a0f6e11d5dd61',  // Natural Gas
-            'feature_group_40bced8c6f59d655fde0781991531044',  // Petroleum Product
-            'feature_group_e70ec41a953fce78fa54a7028d1d3046',  // Submarine
-            'feature_group_f4540c23926000afe26df47786ce488e',  // POL Storage Tanks
-            'feature_group_e4a7cd78a21b50f69a050c24ccfdfa61',  // Intermodal Freight
-            'feature_group_1d77eab727291666943a06c2652de70b',  // Spills
-        ];
-        dataFeatureGroups.forEach(function(id) {
-            var lg = window[id];
-            if (lg && typeof lg.bringToFront === 'function') lg.bringToFront();
-        });
-
-        const layer = e.layer;
+    // 3. Reusable function to calculate metrics and update/open the popup
+    function runBoundaryAnalysis(layer) {
         const drawnPolygon = layer.toGeoJSON();
 
         // --- Calculation Counters ---
@@ -100,13 +80,9 @@ window.addEventListener('load', function() {
                                 const pipeName = feature.properties.Pipename || feature.properties.pipename || '';
                                 const commodityRaw = feature.properties.COMMODITY || feature.properties.commodity || '';
                                 
-                                // Look for any specific unique pipeline ID key provided by the dataset
                                 const assetId = feature.properties.PIPELINE_ID || feature.properties.SUB_SYSTEM || feature.properties.OBJECTID || feature.properties.id || '';
-                                
-                                // Build a unique grouping key: If there's an asset id use it, otherwise fall back to Operator + PipelineName + Commodity combination
                                 const uniqueTrackingKey = assetId ? `${layerId}_${assetId}` : `${layerId}_${opName}_${pipeName}_${commodityRaw}`;
 
-                                // Process type classification attributes
                                 const commodity = commodityRaw.toLowerCase();
                                 let calculatedCategory = 'Other Infrastructure';
                                 
@@ -118,7 +94,6 @@ window.addEventListener('load', function() {
                                     calculatedCategory = 'Petroleum Product';
                                 }
 
-                                // ONLY INCREMENT IF WE HAVEN'T MET THIS PIPELINE PATH IN THIS SHAPE YET
                                 if (!uniqueCrossingsTracker.has(uniqueTrackingKey)) {
                                     uniqueCrossingsTracker.add(uniqueTrackingKey);
                                     crossingBreakdown[calculatedCategory]++;
@@ -126,7 +101,6 @@ window.addEventListener('load', function() {
 
                                 if (opName && opName !== 'Unknown Operator') uniqueOperators.add(opName);
                                 
-                                // Mileage calculations continue on every item to capture overall length sum
                                 try {
                                     const clippedSegment = turf.lineSplit(feature, drawnPolygon);
                                     if (clippedSegment.features.length > 0) {
@@ -149,7 +123,6 @@ window.addEventListener('load', function() {
             }
         });
 
-        // Sum up total non-duplicated crossings from our separate binned items
         let intersectingPipelinesCount = Object.values(crossingBreakdown).reduce((a, b) => a + b, 0);
 
         // 4b. Scan INCIDENTS layer exclusively for points
@@ -161,10 +134,8 @@ window.addEventListener('load', function() {
                     if (feature.geometry && feature.geometry.type === 'Point') {
                         if (turf.booleanPointInPolygon(feature, drawnPolygon)) {
                             totalSpillsInZone++;
-                            
                             const bbls = parseFloat(feature.properties.UNINTENTIONAL_RELEASE_BBLS || 0);
                             totalBarrelsSpilled += bbls;
-                            
                             const cause = feature.properties.CAUSE || "Facility Asset";
                             spillCauses[cause] = (spillCauses[cause] || 0) + 1;
                         }
@@ -193,17 +164,14 @@ window.addEventListener('load', function() {
 
         const maxCrossings = Math.max(...Object.values(crossingBreakdown), 1);
 
-        // 6. Build the readout popup card layout matching main-ui.css & leaflet-custom.css
+        // 6. Build the readout popup card layout
         const popupContent = `
             <div style="font-family: 'Inter', -apple-system, sans-serif; min-width: 260px; padding: 4px; color: #1e293b;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
                     <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;"><i class="bi bi-bullseye"></i> Boundary Analysis</h4> 
                 </div>
-                
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
-                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
-                        Infrastructure in Zone
-                    </div>
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Infrastructure in Zone</div>
                     <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #334155;">
                         <div class="crossings-hover-row" style="display: flex; justify-content: space-between; cursor: help;">
                             <span style="color: #64748b; border-bottom: 1px dotted #cbd5e1;">Pipeline Crossings</span>
@@ -219,11 +187,8 @@ window.addEventListener('load', function() {
                         </div>
                     </div>
                 </div>
-
                 <div style="background-color: #fdf2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 10px;">
-                    <div style="font-size: 11px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
-                        Incident History
-                    </div>
+                    <div style="font-size: 11px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Incident History</div>
                     <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #7f1d1d;">
                         <div style="display: flex; justify-content: space-between;">
                             <span style="color: #991b1b; opacity: 0.8;">Total Incidents</span>
@@ -246,28 +211,12 @@ window.addEventListener('load', function() {
             </div>
         `;
 
-        // 1. Bind the popup (don't open yet — need to wire the tooltip first)
-        layer.bindPopup(popupContent);
-
-        // 2. Build tracking mouse tooltips (crossings + causes)
+        // Tooltip generation logic
         let mouseTooltip = document.getElementById('crossings-mouse-tooltip');
         if (!mouseTooltip) {
             mouseTooltip = document.createElement('div');
             mouseTooltip.id = 'crossings-mouse-tooltip';
-            mouseTooltip.style.cssText = `
-                position: fixed;
-                z-index: 10000;
-                display: none;
-                pointer-events: none;
-                background: #ffffff;
-                border: 1px solid #e2e8f0;
-                border-radius: 8px;
-                padding: 12px;
-                width: 220px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-                font-family: 'Inter', -apple-system, sans-serif;
-                color: #1e293b;
-            `;
+            mouseTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: #1e293b;";
             document.body.appendChild(mouseTooltip);
         }
 
@@ -275,139 +224,123 @@ window.addEventListener('load', function() {
         if (!causeTooltip) {
             causeTooltip = document.createElement('div');
             causeTooltip.id = 'cause-mouse-tooltip';
-            causeTooltip.style.cssText = `
-                position: fixed;
-                z-index: 10000;
-                display: none;
-                pointer-events: none;
-                background: #ffffff;
-                border: 1px solid #fee2e2;
-                border-radius: 8px;
-                padding: 12px;
-                width: 230px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-                font-family: 'Inter', -apple-system, sans-serif;
-                color: #1e293b;
-            `;
+            causeTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: #ffffff; border: 1px solid #fee2e2; border-radius: 8px; padding: 12px; width: 230px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: #1e293b;";
             document.body.appendChild(causeTooltip);
         }
         
         mouseTooltip.innerHTML = `
-            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-                Crossings Breakdown
-            </div>
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Crossings Breakdown</div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-                        <span style="font-weight: 500;">Crude Oil</span>
-                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Crude Oil']}</span>
-                    </div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
-                        <div style="width: ${(crossingBreakdown['Crude Oil'] / maxCrossings) * 100}%; height: 100%; background: #e11d48;"></div>
-                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Crude Oil</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Crude Oil']}</span></div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Crude Oil'] / maxCrossings) * 100}%; height: 100%; background: #e11d48;"></div></div>
                 </div>
                 <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-                        <span style="font-weight: 500;">Natural Gas</span>
-                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Natural Gas']}</span>
-                    </div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
-                        <div style="width: ${(crossingBreakdown['Natural Gas'] / maxCrossings) * 100}%; height: 100%; background: #2563eb;"></div>
-                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Natural Gas</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Natural Gas']}</span></div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Natural Gas'] / maxCrossings) * 100}%; height: 100%; background: #2563eb;"></div></div>
                 </div>
                 <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-                        <span style="font-weight: 500;">Petroleum Product</span>
-                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Petroleum Product']}</span>
-                    </div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
-                        <div style="width: ${(crossingBreakdown['Petroleum Product'] / maxCrossings) * 100}%; height: 100%; background: #16a34a;"></div>
-                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Petroleum Product</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Petroleum Product']}</span></div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Petroleum Product'] / maxCrossings) * 100}%; height: 100%; background: #16a34a;"></div></div>
                 </div>
                 <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-                        <span style="font-weight: 500;">Other Infrastructure</span>
-                        <span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Other Infrastructure']}</span>
-                    </div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
-                        <div style="width: ${(crossingBreakdown['Other Infrastructure'] / maxCrossings) * 100}%; height: 100%; background: #475569;"></div>
-                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Other Infrastructure</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Other Infrastructure']}</span></div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Other Infrastructure'] / maxCrossings) * 100}%; height: 100%; background: #475569;"></div></div>
                 </div>
             </div>
         `;
 
-        // Build cause breakdown tooltip HTML (sorted descending by count)
         const sortedCauses = Object.entries(spillCauses).sort((a, b) => b[1] - a[1]);
         const maxCauseVal = sortedCauses.length > 0 ? sortedCauses[0][1] : 1;
         const causeColors = ['#b91c1c', '#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
         causeTooltip.innerHTML = `
-            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-                Causes Breakdown
-            </div>
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Causes Breakdown</div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 ${sortedCauses.length === 0
                     ? '<div style="font-size: 11px; color: #94a3b8;">No incidents in zone</div>'
                     : sortedCauses.map(([cause, count], i) => `
                         <div>
-                            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
-                                <span style="font-weight: 500;">${cause}</span>
-                                <span style="font-weight: 600; color: #0f172a;">${count}</span>
-                            </div>
-                            <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;">
-                                <div style="width: ${(count / maxCauseVal) * 100}%; height: 100%; background: ${causeColors[Math.min(i, causeColors.length - 1)]};"></div>
-                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span style="font-weight: 500;">${cause}</span><span style="font-weight: 600; color: #0f172a;">${count}</span></div>
+                            <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(count / maxCauseVal) * 100}%; height: 100%; background: ${causeColors[Math.min(i, causeColors.length - 1)]};"></div></div>
                         </div>`).join('')
                 }
             </div>
         `;
 
-        // 3. Attach interactive trackers to both hover rows
         function wireHoverRow() {
             const popupContainer = layer.getPopup()._container;
             if (!popupContainer) return;
 
             const hoverRow = popupContainer.querySelector('.crossings-hover-row');
             if (hoverRow) {
-                hoverRow.addEventListener('mouseenter', function() {
-                    mouseTooltip.style.display = 'block';
+                hoverRow.addEventListener('mouseenter', () => mouseTooltip.style.display = 'block');
+                hoverRow.addEventListener('mousemove', (e) => {
+                    mouseTooltip.style.left = (e.clientX + 15) + 'px';
+                    mouseTooltip.style.top = (e.clientY + 15) + 'px';
                 });
-                hoverRow.addEventListener('mousemove', function(event) {
-                    mouseTooltip.style.left = (event.clientX + 15) + 'px';
-                    mouseTooltip.style.top = (event.clientY + 15) + 'px';
-                });
-                hoverRow.addEventListener('mouseleave', function() {
-                    mouseTooltip.style.display = 'none';
-                });
+                hoverRow.addEventListener('mouseleave', () => mouseTooltip.style.display = 'none');
             }
 
             const causeRow = popupContainer.querySelector('.cause-hover-row');
             if (causeRow) {
-                causeRow.addEventListener('mouseenter', function() {
-                    causeTooltip.style.display = 'block';
+                causeRow.addEventListener('mouseenter', () => causeTooltip.style.display = 'block');
+                causeRow.addEventListener('mousemove', (e) => {
+                    causeTooltip.style.left = (e.clientX + 15) + 'px';
+                    causeTooltip.style.top = (e.clientY + 15) + 'px';
                 });
-                causeRow.addEventListener('mousemove', function(event) {
-                    causeTooltip.style.left = (event.clientX + 15) + 'px';
-                    causeTooltip.style.top = (event.clientY + 15) + 'px';
-                });
-                causeRow.addEventListener('mouseleave', function() {
-                    causeTooltip.style.display = 'none';
-                });
+                causeRow.addEventListener('mouseleave', () => causeTooltip.style.display = 'none');
             }
         }
 
-        // Open the popup now — _container is available immediately after this call
-        layer.openPopup();
+        // Bind content dynamically, force update if already open, then attach events
+        layer.bindPopup(popupContent);
+        if (layer.isPopupOpen()) {
+            layer.setPopupContent(popupContent);
+        } else {
+            layer.openPopup();
+        }
         wireHoverRow();
 
-        // Re-wire when popup is reopened after being moved/closed by a new boundary click
-        mapInstance.on('popupopen', function onPopupOpen(e) {
-            if (e.popup !== layer.getPopup()) return;
-            wireHoverRow();
-        });
-
+        // Bind closing hooks for tooltips
         layer.getPopup().on('remove', function() {
             if (mouseTooltip) mouseTooltip.style.display = 'none';
             if (causeTooltip) causeTooltip.style.display = 'none';
+        });
+    }
+
+    mapInstance.on('pm:create', function(e) {
+        const layer = e.layer;
+        layer.options.pmIgnore = false;
+        L.PM.reInitLayer(layer);
+
+        // Z-Index layer management
+        const dataFeatureGroups = [
+            'feature_group_5b0dfed6baae0869165359db3af8c544',
+            'feature_group_d79a63b58ef60015b33a0f6e11d5dd61',
+            'feature_group_40bced8c6f59d655fde0781991531044',
+            'feature_group_e70ec41a953fce78fa54a7028d1d3046',
+            'feature_group_f4540c23926000afe26df47786ce488e',
+            'feature_group_e4a7cd78a21b50f69a050c24ccfdfa61',
+            'feature_group_1d77eab727291666943a06c2652de70b',
+        ];
+        dataFeatureGroups.forEach(id => {
+            var lg = window[id];
+            if (lg && typeof lg.bringToFront === 'function') lg.bringToFront();
+        });
+
+        // Run analysis on creation
+        runBoundaryAnalysis(layer);
+
+        // Listen for vertex changes/edits or when the entire shape is moved/dragged
+        layer.on('pm:edit pm:dragend', function() {
+            runBoundaryAnalysis(layer);
+        });
+
+        // Ensure hover elements re-wire safely if the user closes and re-clicks the layer
+        mapInstance.on('popupopen', function onPopupOpen(evt) {
+            if (evt.popup === layer.getPopup()) {
+                runBoundaryAnalysis(layer);
+            }
         });
     });
 });
