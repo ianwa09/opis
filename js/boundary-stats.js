@@ -1,5 +1,5 @@
 /**
- * OPIS Boundary Stats & Spatial Analysis Module (Bottom-loaded version)
+ * Boundary Stats & Spatial Analysis Module (Bottom-loaded version)
  * Grabs loaded Folium layers and calculates custom metrics inside a drawn zone.
  */
 
@@ -31,7 +31,6 @@ window.addEventListener('load', function() {
     L.PM.setOptIn(true);
 
 
-    // 3. Listen for when a shape is drawn
     // 3. Reusable function to calculate metrics and update/open the popup
     function runBoundaryAnalysis(layer) {
         const drawnPolygon = layer.toGeoJSON();
