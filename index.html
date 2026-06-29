@@ -41,7 +41,6 @@
 
       gtag('config', 'G-HBX7R22YHT ');
     </script>
-    
 
 </head>
 <body>
@@ -843,31 +842,33 @@
 
               <!-- ── SPILLS TAB ── -->
               <div class="tab-pane" id="tab-spills">
-                <!-- KPI Bar -->
-                <div id="spill-kpi-bar">
-                  <div class="kpi-card">
-                    <div class="kpi-val" id="kpi-total">—</div>
-                    <div class="kpi-label">Incidents</div>
-                  </div>
-                  <div class="kpi-card">
-                    <div class="kpi-val" id="kpi-bbls">—</div>
-                    <div class="kpi-label">Avg Bbls</div>
-                  </div>
-                  <div class="kpi-card">
-                    <div class="kpi-val" id="kpi-cost">—</div>
-                    <div class="kpi-label">Avg Cost</div>
-                  </div>
-                </div>
                 <div class="spills-toggle" id="spills-toggle">
-                  <div>
+                <div>
                     <div class="spills-title">Hazardous Liquid Spills</div>
                     <div class="spills-subtitle">Historical incident data</div>
-                  </div>
-                  <label class="toggle-switch" onclick="event.stopPropagation()">
+                </div>
+                <label class="toggle-switch" onclick="event.stopPropagation()">
                     <input type="checkbox" id="spills-checkbox">
                     <span class="slider"></span>
-                  </label>
+                </label>
                 </div>
+
+                <div class="spills-toggle" id="severity-toggle-container" style="margin-top: 8px; opacity: 0.5; pointer-events: none; transition: all 0.2s;">
+                <div>
+                    <div class="spills-title" style="font-size: 13px;">Color by Spill Severity</div>
+                    <div class="spills-subtitle" style="font-size: 11px;">Apply gradient and size scaling</div>
+                </div>
+                <label class="toggle-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="severity-gradient-checkbox" onchange="toggleSpillSeverity(this.checked)">
+                    <span class="slider"></span>
+                </label>
+                </div>
+
+                <p class="spills-note">
+                Shows reported <strong>hazardous liquid spill</strong> incidents.
+                Each marker includes date, commodity, volume, and cause.<br><br>
+                <strong>Note:</strong> This dataset is large, so loading may take a few seconds.
+                </p>
                 <p class="spills-note">
                   Shows reported <strong>hazardous liquid spill</strong> incidents using PHMSA data from 1/1/2010 to 12/23/2025.
                   Each marker includes date, commodity, volume, and cause.<br><br>
@@ -963,6 +964,8 @@
 
 <script src="js/data/pipelines.js"></script>
 <script src="js/boundary-stats.js"></script>
+
+<script src="js/map-utils.js"></script>
 
 <script src="js/app.js"></script>
 
