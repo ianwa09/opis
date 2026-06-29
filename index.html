@@ -698,6 +698,10 @@
         });
 
         function geo_json_74a8ff648bc5b9190beaecc887f54037_add (data) {
+            // Cache the full, unfiltered dataset so the spill filter panel
+            // (app.js) can rebuild this layer from a subset without needing
+            // to re-fetch or duplicate the ~5,800-feature dataset.
+            window.allSpillFeatures = data.features;
             geo_json_74a8ff648bc5b9190beaecc887f54037
                 .addData(data);
         }
@@ -865,10 +869,72 @@
                   </label>
                 </div>
                 <p class="spills-note">
-                  Shows reported <strong>hazardous liquid spill</strong> incidents.
+                  Shows reported <strong>hazardous liquid spill</strong> incidents using PHMSA data from 1/1/2010 to 12/23/2025.
                   Each marker includes date, commodity, volume, and cause.<br><br>
                   <strong>Note:</strong> This dataset is large, so loading may take a few seconds.
                 </p>
+
+                <div id="spill-filters">
+                  <div class="filters-header" id="spill-filters-toggle">
+                    <p class="section-label" style="margin:0;">Filter Spills</p>
+                    <span class="filters-chevron">&#9662;</span>
+                  </div>
+                  <div class="filters-body">
+
+                    <div>
+                      <p class="filter-group-label">Date Range</p>
+                      <div class="date-range-row">
+                        <input type="date" id="filter-date-start">
+                        <span>&ndash;</span>
+                        <input type="date" id="filter-date-end">
+                      </div>
+                    </div>
+
+                    <div>
+                      <p class="filter-group-label">Commodity</p>
+                      <select class="filter-select" id="filter-commodity">
+                        <option value="ALL">All commodities</option>
+                        <option value="CRUDE OIL">Crude Oil</option>
+                        <option value="REFINED AND/OR PETROLEUM PRODUCT (NON-HVL) WHICH IS A LIQUID AT AMBIENT CONDITIONS">Refined / Petroleum Product</option>
+                        <option value="HVL OR OTHER FLAMMABLE OR TOXIC FLUID WHICH IS A GAS AT AMBIENT CONDITIONS">HVL / Flammable Gas</option>
+                        <option value="CO2 (CARBON DIOXIDE)">CO2 (Carbon Dioxide)</option>
+                        <option value="BIOFUEL / ALTERNATIVE FUEL(INCLUDING ETHANOL BLENDS)">Biofuel / Alternative Fuel</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <p class="filter-group-label">Cause</p>
+                      <select class="filter-select" id="filter-cause">
+                        <option value="ALL">All causes</option>
+                        <option value="CORROSION FAILURE">Corrosion Failure</option>
+                        <option value="EQUIPMENT FAILURE">Equipment Failure</option>
+                        <option value="EXCAVATION DAMAGE">Excavation Damage</option>
+                        <option value="INCORRECT OPERATION">Incorrect Operation</option>
+                        <option value="MATERIAL FAILURE OF PIPE OR WELD">Material Failure of Pipe/Weld</option>
+                        <option value="NATURAL FORCE DAMAGE">Natural Force Damage</option>
+                        <option value="OTHER OUTSIDE FORCE DAMAGE">Other Outside Force Damage</option>
+                        <option value="OTHER ACCIDENT CAUSE">Other Accident Cause</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <p class="filter-group-label">Minimum Volume (Bbls)</p>
+                      <div class="pill-row" id="filter-volume-pills">
+                        <button type="button" class="filter-pill active" data-min-bbls="0">Any</button>
+                        <button type="button" class="filter-pill" data-min-bbls="10">10+</button>
+                        <button type="button" class="filter-pill" data-min-bbls="100">100+</button>
+                        <button type="button" class="filter-pill" data-min-bbls="1000">1,000+</button>
+                      </div>
+                    </div>
+
+                    <div id="spill-filters-count">
+                      Showing <strong id="spill-filters-count-val">&mdash;</strong> of <strong id="spill-filters-count-total">&mdash;</strong> incidents
+                    </div>
+
+                    <button id="spill-filters-reset">&#x2715; Reset filters</button>
+                  </div>
+                </div>
+
                 <button id="meth-btn" class="btn btn-primary">
                   <i class="bi bi-file-earmark-text me-2"></i>Data Methodology &amp; Appendix
                 </button>

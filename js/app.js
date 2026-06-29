@@ -439,6 +439,141 @@ document.getElementById('spills-checkbox').addEventListener('change', function (
     setSpills(this.checked);
 });
 
+// ── Spill filters ──
+// Filtering rebuilds the spills GeoJSON layer (geo_json_74a8ff648bc5b9190beaecc887f54037)
+// from the full cached dataset (window.allSpillFeatures, set in index.html) so that
+// boundary-stats.js — which reads spillsLayer.toGeoJSON() — automatically only
+// sees the currently-filtered incidents with no changes needed on its end.
+
+var spillFilters = {
+    dateStart: null,   // 'YYYY-MM-DD' or null
+    dateEnd: null,      // 'YYYY-MM-DD' or null
+    commodity: 'ALL',
+    cause: 'ALL',
+    minBbls: 0
+};
+
+// Parses PHMSA's "M/D/YYYY H:MM" LOCAL_DATETIME strings into a Date.
+// Returns null if unparseable so those features are never silently dropped
+// by a date filter (they're excluded only by other active filters).
+function parseSpillDate(raw) {
+    if (!raw) return null;
+    var parts = raw.split(' ')[0].split('/');
+    if (parts.length !== 3) return null;
+    var month = parseInt(parts[0], 10), day = parseInt(parts[1], 10), year = parseInt(parts[2], 10);
+    if (!month || !day || !year) return null;
+    return new Date(year, month - 1, day);
+}
+
+function featureMatchesFilters(feature) {
+    var props = feature.properties || {};
+
+    if (spillFilters.dateStart || spillFilters.dateEnd) {
+        var d = parseSpillDate(props.LOCAL_DATETIME);
+        if (d) {
+            if (spillFilters.dateStart && d < new Date(spillFilters.dateStart)) return false;
+            if (spillFilters.dateEnd && d > new Date(spillFilters.dateEnd)) return false;
+        }
+    }
+
+    if (spillFilters.commodity !== 'ALL' && props.COMMODITY_RELEASED_TYPE !== spillFilters.commodity) {
+        return false;
+    }
+
+    if (spillFilters.cause !== 'ALL' && props.CAUSE !== spillFilters.cause) {
+        return false;
+    }
+
+    if (spillFilters.minBbls > 0) {
+        var bbls = parseFloat(props.UNINTENTIONAL_RELEASE_BBLS || 0);
+        if (isNaN(bbls) || bbls < spillFilters.minBbls) return false;
+    }
+
+    return true;
+}
+
+function applySpillFilters() {
+    if (!window.allSpillFeatures || !window.geo_json_74a8ff648bc5b9190beaecc887f54037) {
+        return; // spills data not loaded yet
+    }
+    var filtered = window.allSpillFeatures.filter(featureMatchesFilters);
+
+    geo_json_74a8ff648bc5b9190beaecc887f54037.clearLayers();
+    geo_json_74a8ff648bc5b9190beaecc887f54037.addData({
+        type: 'FeatureCollection',
+        features: filtered
+    });
+
+    var countVal = document.getElementById('spill-filters-count-val');
+    var countTotal = document.getElementById('spill-filters-count-total');
+    if (countVal) countVal.textContent = filtered.length.toLocaleString();
+    if (countTotal) countTotal.textContent = window.allSpillFeatures.length.toLocaleString();
+}
+
+// Collapse/expand the filter panel
+document.getElementById('spill-filters-toggle').addEventListener('click', function () {
+    document.getElementById('spill-filters').classList.toggle('collapsed');
+});
+
+// Date inputs
+document.getElementById('filter-date-start').addEventListener('change', function () {
+    spillFilters.dateStart = this.value || null;
+    applySpillFilters();
+});
+document.getElementById('filter-date-end').addEventListener('change', function () {
+    spillFilters.dateEnd = this.value || null;
+    applySpillFilters();
+});
+
+// Commodity dropdown
+document.getElementById('filter-commodity').addEventListener('change', function () {
+    spillFilters.commodity = this.value;
+    applySpillFilters();
+});
+
+// Cause dropdown
+document.getElementById('filter-cause').addEventListener('change', function () {
+    spillFilters.cause = this.value;
+    applySpillFilters();
+});
+
+// Minimum volume pills (single-select)
+document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (pill) {
+    pill.addEventListener('click', function () {
+        document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p) {
+            p.classList.remove('active');
+        });
+        pill.classList.add('active');
+        spillFilters.minBbls = parseFloat(pill.dataset.minBbls) || 0;
+        applySpillFilters();
+    });
+});
+
+// Reset
+document.getElementById('spill-filters-reset').addEventListener('click', function () {
+    spillFilters = { dateStart: null, dateEnd: null, commodity: 'ALL', cause: 'ALL', minBbls: 0 };
+    document.getElementById('filter-date-start').value = '';
+    document.getElementById('filter-date-end').value = '';
+    document.getElementById('filter-commodity').value = 'ALL';
+    document.getElementById('filter-cause').value = 'ALL';
+    document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p, i) {
+        p.classList.toggle('active', i === 0);
+    });
+    applySpillFilters();
+});
+
+// Apply filters (no-op if all defaults) once spill data has loaded, so the
+// "Showing X of Y" count is correct even before the user touches a filter.
+// allSpillFeatures is set synchronously by pipelines.js before app.js runs,
+// but guard with a short retry in case load order ever changes.
+(function initSpillFilterCount() {
+    if (window.allSpillFeatures) {
+        applySpillFilters();
+    } else {
+        setTimeout(initSpillFilterCount, 50);
+    }
+})();
+
 //  SPILL COST SIMULATOR
 
 document.body.insertAdjacentHTML('beforeend', `
