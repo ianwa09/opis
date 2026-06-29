@@ -348,11 +348,6 @@ document.getElementById('meth-backdrop').addEventListener('click', function(e) {
 if (e.target === this) this.classList.remove('open');
 });
 
-// KPI values (static from PHMSA 2015-2024 dataset summary) 
-document.getElementById('kpi-total').textContent = '2,847';
-document.getElementById('kpi-bbls').textContent = '127';
-document.getElementById('kpi-cost').textContent = '$1.4M';
-
 
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
 btn.addEventListener('click', function() {
