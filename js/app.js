@@ -1,34 +1,39 @@
 var tutorialSteps = [
-{
-icon: 'bi-map', 
-title: 'Welcome to OPIS!',
-body: 'This tool lets you explore the U.S. pipeline network and simulate the estimated cost of a spill incident. Use the right-hand panel to control what\'s shown on the map.<br><br>This short tutorial walks you through the key features.'
-},
-{
-icon: 'bi-droplet-half', 
-title: 'Select a Pipeline Layer',
-body: 'In the <strong>Pipelines</strong> tab on the right, pick a pipeline type: Crude Oil, Natural Gas, Petroleum Products, and more. Only one type is shown at a time for clarity and performance.<br><br>Each type appears in a distinct color on the map.'
-},
-{
-icon: 'bi-layers',
-title: 'Switch Your Basemap',
-body: 'At the top of the Pipelines tab, you can switch between three basemaps:<br><br><strong>Dark</strong>: best for seeing pipeline routes clearly<br><strong>Satellite</strong>: see real-world terrain and infrastructure<br><strong>Street</strong>: reference cities and roads'
-},
-{
-icon: 'bi-lightning-charge', 
-title: 'Run a Spill Cost Simulation',
-body: '<strong>Select the Crude Oil layer, then click any pipeline on the map</strong> to open the Spill Cost Simulator. The simulator is calibrated to crude oil incidents only, using PHMSA data from 2015 to 2024.<br><br>Adjust release volume, location type, and environmental risk factors to estimate total incident costs, broken down by category.'
-},
-{
-icon: 'bi-exclamation-circle',
-title: 'View Historical Spill Incidents',
-body: 'Switch to the <strong>Spill History</strong> tab to toggle on a layer of real PHMSA-reported hazardous liquid spill incidents. Each marker shows date, commodity, volume released, and cause.<br><br><em>Note: this dataset is large and may take a few seconds to load.</em>'
-},
-{
-icon: 'bi-file-earmark-text', 
-title: 'Data Sources & Methodology',
-body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the Spill History tab to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>Contact us at <a href="mailto:iwang@imsa.edu">iwang@imsa.edu</a> and <a href="mailto:olee@imsa.edu">olee@imsa.edu</a> with any questions or suggestions.<br><br>You\'re all set. Explore the map!'
-}
+    {
+        icon: 'bi-map',
+        title: 'Welcome to OPIS!',
+        body: 'This tool lets you explore the U.S. pipeline network and simulate the estimated cost of a spill incident. Use the right-hand panel to control what\'s shown on the map.<br><br>This short tutorial walks you through the key features.'
+    },
+    {
+        icon: 'bi-droplet-half',
+        title: 'Select a Pipeline Layer',
+        body: 'In the <strong>Pipelines</strong> tab on the right, pick a pipeline type: Crude Oil, Natural Gas, Petroleum Products, and more. Only one type is shown at a time for clarity and performance.<br><br>Each type appears in a distinct color on the map.'
+    },
+    {
+        icon: 'bi-layers',
+        title: 'Switch Your Basemap',
+        body: 'At the top of the Pipelines tab, you can switch between three basemaps:<br><br><strong>Dark</strong>: best for seeing pipeline routes clearly<br><strong>Satellite</strong>: see real-world terrain and infrastructure<br><strong>Street</strong>: reference cities and roads'
+    },
+    {
+        icon: 'bi-lightning-charge',
+        title: 'Run a Spill Cost Simulation',
+        body: '<strong>Select the Crude Oil layer, then click any pipeline on the map</strong> to open the Spill Cost Simulator. The simulator is calibrated to crude oil incidents only, using PHMSA data from 2015 to 2024.<br><br>Adjust release volume, location type, and environmental risk factors to estimate total incident costs, broken down by category.'
+    },
+    {
+        icon: 'bi-exclamation-circle',
+        title: 'View Historical Spill Incidents',
+        body: 'Switch to the <strong>Spill History</strong> tab to toggle on a layer of real PHMSA-reported hazardous liquid spill incidents. Each marker shows date, commodity, volume released, and cause.<br><br><em>Note: this dataset is large and may take a few seconds to load.</em>'
+    },
+    {
+        icon: 'bi-pencil',
+        title: 'Draw Boundaries',
+        body: 'You can draw boundaries on the map to calculate oil spill statistics within the region. Click the <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-rectangle modal-geoman-icon"></span></span> tool to draw a rectangular boundary, and the <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-polygon modal-geoman-icon"></span></span> icon to draw a polygonal boundary. You can edit, drag, cut, erase, and rotate previous boundaries with the <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-edit modal-geoman-icon"></span></span>, <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-drag modal-geoman-icon"></span></span>, <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-cut modal-geoman-icon"></span></span>, <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-delete modal-geoman-icon"></span></span>, and <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-rotate modal-geoman-icon"></span></span> icons.'
+    },
+    {
+        icon: 'bi-file-earmark-text',
+        title: 'Data Sources & Methodology',
+        body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the Spill History tab to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>Contact us at <a href="mailto:iwang@imsa.edu">iwang@imsa.edu</a> and <a href="mailto:olee@imsa.edu">olee@imsa.edu</a> with any questions or suggestions.<br><br>You\'re all set. Explore the map!'
+    }
 ];
 var tutStep = 0;
 
@@ -40,8 +45,8 @@ function renderTutStep() {
     document.getElementById('tut-step-num').textContent = (tutStep + 1) + ' of ' + tutorialSteps.length;
     // dots
     var dots = document.querySelectorAll('.tut-dot');
-    dots.forEach(function(d, i) {
-    d.className = 'tut-dot' + (i === tutStep ? ' active' : i < tutStep ? ' done' : '');
+    dots.forEach(function (d, i) {
+        d.className = 'tut-dot' + (i === tutStep ? ' active' : i < tutStep ? ' done' : '');
     });
     // prev button visibility
     document.getElementById('tut-prev-btn').style.display = tutStep === 0 ? 'none' : '';
@@ -60,7 +65,7 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>
 <div class="tut-body">
     <div class="tut-dots">
-    ${tutorialSteps.map(function(_,i){ return '<div class="tut-dot' + (i===0?' active':'') + '"></div>'; }).join('')}
+    ${tutorialSteps.map(function (_, i) { return '<div class="tut-dot' + (i === 0 ? ' active' : '') + '"></div>'; }).join('')}
     </div>
     <div class="tut-icon" id="tut-icon"></div>
     <div class="tut-step-title" id="tut-step-title"></div>
@@ -89,10 +94,10 @@ renderTutStep();
 // Helper function to close any open modals on the screen
 function closeAllModals() {
     var openBackdrops = document.querySelectorAll('.contact-backdrop, #tutorial-backdrop, #meth-backdrop, #sim-backdrop');
-    openBackdrops.forEach(function(backdrop) {
+    openBackdrops.forEach(function (backdrop) {
         backdrop.classList.remove('open');
     });
-    
+
     // Optional: Reset tutorial step back to 0 if it was closed
     if (typeof currentStep !== 'undefined') {
         currentStep = 0;
@@ -104,11 +109,11 @@ function closeAndSaveTutorial() {
     document.getElementById('tutorial-backdrop').classList.remove('open');
 }
 // Close the tutorial completely if the user clicks out onto the backdrop overlay
-document.getElementById('tutorial-backdrop').addEventListener('click', function(e) {
+document.getElementById('tutorial-backdrop').addEventListener('click', function (e) {
     // Only trigger if they clicked the backdrop itself, not the modal card inside it
     if (e.target === this) {
         this.classList.remove('open');
-        
+
         // Reset the tutorial back to the beginning step for the next time it opens
         currentStep = 0;
         if (typeof showStep === 'function') {
@@ -120,7 +125,7 @@ document.getElementById('tutorial-backdrop').addEventListener('click', function(
 document.getElementById('tut-close-btn').addEventListener('click', closeAndSaveTutorial);
 
 // Next button click
-document.getElementById('tut-next-btn').addEventListener('click', function() {
+document.getElementById('tut-next-btn').addEventListener('click', function () {
     if (tutStep < tutorialSteps.length - 1) {
         tutStep++;
         renderTutStep();
@@ -128,17 +133,17 @@ document.getElementById('tut-next-btn').addEventListener('click', function() {
         closeAndSaveTutorial(); // Triggers when "Get started →" is clicked on the final step
     }
 });
-document.getElementById('tut-prev-btn').addEventListener('click', function() {
-if (tutStep > 0) { tutStep--; renderTutStep(); }
+document.getElementById('tut-prev-btn').addEventListener('click', function () {
+    if (tutStep > 0) { tutStep--; renderTutStep(); }
 });
-document.getElementById('tutorial-btn').addEventListener('click', function() {
+document.getElementById('tutorial-btn').addEventListener('click', function () {
     closeAllModals();
     tutStep = 0;
     renderTutStep();
-    
+
     var skipTutorial = localStorage.getItem('skipOpisTutorial');
     document.getElementById('tut-no-show').checked = (skipTutorial === 'true');
-    
+
     document.getElementById('tutorial-backdrop').classList.add('open');
 });
 
@@ -150,7 +155,7 @@ if (skipTutorial !== 'true' && backdrop) {
     document.getElementById('tut-no-show').checked = false;
 }
 
-document.addEventListener('change', function(e) {
+document.addEventListener('change', function (e) {
     if (e.target && e.target.id === 'tut-no-show') {
         if (e.target.checked) {
             localStorage.setItem('skipOpisTutorial', 'true');
@@ -161,7 +166,7 @@ document.addEventListener('change', function(e) {
 });
 
 
- 
+
 document.body.insertAdjacentHTML('beforeend', `
 <div id="contact-backdrop" class="contact-backdrop">
 <div id="contact-modal" class="contact-modal">
@@ -197,23 +202,23 @@ document.body.insertAdjacentHTML('beforeend', `
 `);
 
 // Contact modal controls
-document.getElementById('contact-btn').addEventListener('click', function() {
+document.getElementById('contact-btn').addEventListener('click', function () {
     closeAllModals();
-    
+
     document.getElementById('contact-backdrop').classList.add('open');
 });
 
-['contact-close-btn'].forEach(function(id) {
+['contact-close-btn'].forEach(function (id) {
     var btn = document.getElementById(id);
     if (btn) {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             document.getElementById('contact-backdrop').classList.remove('open');
         });
     }
 });
 
 // Close if they click the background backdrop layout
-document.getElementById('contact-backdrop').addEventListener('click', function(e) {
+document.getElementById('contact-backdrop').addEventListener('click', function (e) {
     if (e.target === this) {
         this.classList.remove('open');
     }
@@ -338,77 +343,77 @@ document.body.insertAdjacentHTML('beforeend', `
 `);
 
 // Methodology modal controls
-document.getElementById('meth-btn').addEventListener('click', function() {
-document.getElementById('meth-backdrop').classList.add('open');
+document.getElementById('meth-btn').addEventListener('click', function () {
+    document.getElementById('meth-backdrop').classList.add('open');
 });
-document.getElementById('meth-close-btn').addEventListener('click', function() {
-document.getElementById('meth-backdrop').classList.remove('open');
+document.getElementById('meth-close-btn').addEventListener('click', function () {
+    document.getElementById('meth-backdrop').classList.remove('open');
 });
-document.getElementById('meth-backdrop').addEventListener('click', function(e) {
-if (e.target === this) this.classList.remove('open');
+document.getElementById('meth-backdrop').addEventListener('click', function (e) {
+    if (e.target === this) this.classList.remove('open');
 });
 
 
-document.querySelectorAll('.tab-btn').forEach(function(btn) {
-btn.addEventListener('click', function() {
-    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
-    document.querySelectorAll('.tab-pane').forEach(function(p){ p.classList.remove('active'); });
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-});
+document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
 });
 
 // Basemap switching
-document.querySelectorAll('.bm-btn').forEach(function(btn) {
-btn.addEventListener('click', function() {
-    var name = btn.dataset.bm;
-    if (name === activeBasemap) return;
-    map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(basemaps[activeBasemap]);
-    map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(basemaps[name]);
-    activeBasemap = name;
-    document.querySelectorAll('.bm-btn').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-});
+document.querySelectorAll('.bm-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var name = btn.dataset.bm;
+        if (name === activeBasemap) return;
+        map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(basemaps[activeBasemap]);
+        map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(basemaps[name]);
+        activeBasemap = name;
+        document.querySelectorAll('.bm-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+    });
 });
 
 // Pipeline selection
-document.querySelectorAll('#pipeline-list li').forEach(function(li) {
-li.addEventListener('click', function() {
-    var name = li.dataset.layer;
-    // If already selected -> clear
-    if (activePipeline === name) {
-        map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[name]);
-        activePipeline = null;
-        li.classList.remove('selected');
+document.querySelectorAll('#pipeline-list li').forEach(function (li) {
+    li.addEventListener('click', function () {
+        var name = li.dataset.layer;
+        // If already selected -> clear
+        if (activePipeline === name) {
+            map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[name]);
+            activePipeline = null;
+            li.classList.remove('selected');
+            var strip = document.getElementById('strip-name-text');
+            if (strip) { strip.textContent = 'None selected'; strip.className = 'strip-name none'; }
+            return;
+        }
+        // Remove previous
+        if (activePipeline !== null) {
+            map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[activePipeline]);
+            document.querySelector('#pipeline-list li.selected').classList.remove('selected');
+        }
+        // Add new
+        activePipeline = name;
+        li.classList.add('selected');
         var strip = document.getElementById('strip-name-text');
-        if (strip) { strip.textContent = 'None selected'; strip.className = 'strip-name none'; }
-        return;
-    }
-    // Remove previous
-    if (activePipeline !== null) {
-        map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[activePipeline]);
-        document.querySelector('#pipeline-list li.selected').classList.remove('selected');
-    }
-    // Add new
-    activePipeline = name;
-    li.classList.add('selected');
-    var strip = document.getElementById('strip-name-text');
-    if (strip) { strip.textContent = name; strip.className = 'strip-name'; }
-    showToast('Loading ' + name + '…');
-    setTimeout(function() { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(pipelineLayers[name]); }, 30);
-});
+        if (strip) { strip.textContent = name; strip.className = 'strip-name'; }
+        showToast('Loading ' + name + '…');
+        setTimeout(function () { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(pipelineLayers[name]); }, 30);
+    });
 });
 
 // Clear button
-document.getElementById('ctrl-clear-btn').addEventListener('click', function() {
-if (activePipeline !== null) {
-    map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[activePipeline]);
-    var sel = document.querySelector('#pipeline-list li.selected');
-    if (sel) sel.classList.remove('selected');
-    activePipeline = null;
-    var strip = document.getElementById('strip-name-text');
-    if (strip) { strip.textContent = 'None selected'; strip.className = 'strip-name none'; }
-}
+document.getElementById('ctrl-clear-btn').addEventListener('click', function () {
+    if (activePipeline !== null) {
+        map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[activePipeline]);
+        var sel = document.querySelector('#pipeline-list li.selected');
+        if (sel) sel.classList.remove('selected');
+        activePipeline = null;
+        var strip = document.getElementById('strip-name-text');
+        if (strip) { strip.textContent = 'None selected'; strip.className = 'strip-name none'; }
+    }
 });
 
 // toggle spills
@@ -435,17 +440,152 @@ function setSpills(on) {
 
     if (on) {
         showToast('Loading spill data…');
-        setTimeout(function() { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(spillsLayer); }, 30);
+        setTimeout(function () { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(spillsLayer); }, 30);
     } else {
         map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(spillsLayer);
     }
 }
-document.getElementById('spills-toggle').addEventListener('click', function() {
+document.getElementById('spills-toggle').addEventListener('click', function () {
     setSpills(!spillsOn);
 });
-document.getElementById('spills-checkbox').addEventListener('change', function() {
+document.getElementById('spills-checkbox').addEventListener('change', function () {
     setSpills(this.checked);
 });
+
+// ── Spill filters ──
+// Filtering rebuilds the spills GeoJSON layer (geo_json_74a8ff648bc5b9190beaecc887f54037)
+// from the full cached dataset (window.allSpillFeatures, set in index.html) so that
+// boundary-stats.js — which reads spillsLayer.toGeoJSON() — automatically only
+// sees the currently-filtered incidents with no changes needed on its end.
+
+var spillFilters = {
+    dateStart: null,   // 'YYYY-MM-DD' or null
+    dateEnd: null,      // 'YYYY-MM-DD' or null
+    commodity: 'ALL',
+    cause: 'ALL',
+    minBbls: 0
+};
+
+// Parses PHMSA's "M/D/YYYY H:MM" LOCAL_DATETIME strings into a Date.
+// Returns null if unparseable so those features are never silently dropped
+// by a date filter (they're excluded only by other active filters).
+function parseSpillDate(raw) {
+    if (!raw) return null;
+    var parts = raw.split(' ')[0].split('/');
+    if (parts.length !== 3) return null;
+    var month = parseInt(parts[0], 10), day = parseInt(parts[1], 10), year = parseInt(parts[2], 10);
+    if (!month || !day || !year) return null;
+    return new Date(year, month - 1, day);
+}
+
+function featureMatchesFilters(feature) {
+    var props = feature.properties || {};
+
+    if (spillFilters.dateStart || spillFilters.dateEnd) {
+        var d = parseSpillDate(props.LOCAL_DATETIME);
+        if (d) {
+            if (spillFilters.dateStart && d < new Date(spillFilters.dateStart)) return false;
+            if (spillFilters.dateEnd && d > new Date(spillFilters.dateEnd)) return false;
+        }
+    }
+
+    if (spillFilters.commodity !== 'ALL' && props.COMMODITY_RELEASED_TYPE !== spillFilters.commodity) {
+        return false;
+    }
+
+    if (spillFilters.cause !== 'ALL' && props.CAUSE !== spillFilters.cause) {
+        return false;
+    }
+
+    if (spillFilters.minBbls > 0) {
+        var bbls = parseFloat(props.UNINTENTIONAL_RELEASE_BBLS || 0);
+        if (isNaN(bbls) || bbls < spillFilters.minBbls) return false;
+    }
+
+    return true;
+}
+
+function applySpillFilters() {
+    if (!window.allSpillFeatures || !window.geo_json_74a8ff648bc5b9190beaecc887f54037) {
+        return; // spills data not loaded yet
+    }
+    var filtered = window.allSpillFeatures.filter(featureMatchesFilters);
+
+    geo_json_74a8ff648bc5b9190beaecc887f54037.clearLayers();
+    geo_json_74a8ff648bc5b9190beaecc887f54037.addData({
+        type: 'FeatureCollection',
+        features: filtered
+    });
+
+    var countVal = document.getElementById('spill-filters-count-val');
+    var countTotal = document.getElementById('spill-filters-count-total');
+    if (countVal) countVal.textContent = filtered.length.toLocaleString();
+    if (countTotal) countTotal.textContent = window.allSpillFeatures.length.toLocaleString();
+}
+
+// Collapse/expand the filter panel
+document.getElementById('spill-filters-toggle').addEventListener('click', function () {
+    document.getElementById('spill-filters').classList.toggle('collapsed');
+});
+
+// Date inputs
+document.getElementById('filter-date-start').addEventListener('change', function () {
+    spillFilters.dateStart = this.value || null;
+    applySpillFilters();
+});
+document.getElementById('filter-date-end').addEventListener('change', function () {
+    spillFilters.dateEnd = this.value || null;
+    applySpillFilters();
+});
+
+// Commodity dropdown
+document.getElementById('filter-commodity').addEventListener('change', function () {
+    spillFilters.commodity = this.value;
+    applySpillFilters();
+});
+
+// Cause dropdown
+document.getElementById('filter-cause').addEventListener('change', function () {
+    spillFilters.cause = this.value;
+    applySpillFilters();
+});
+
+// Minimum volume pills (single-select)
+document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (pill) {
+    pill.addEventListener('click', function () {
+        document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p) {
+            p.classList.remove('active');
+        });
+        pill.classList.add('active');
+        spillFilters.minBbls = parseFloat(pill.dataset.minBbls) || 0;
+        applySpillFilters();
+    });
+});
+
+// Reset
+document.getElementById('spill-filters-reset').addEventListener('click', function () {
+    spillFilters = { dateStart: null, dateEnd: null, commodity: 'ALL', cause: 'ALL', minBbls: 0 };
+    document.getElementById('filter-date-start').value = '';
+    document.getElementById('filter-date-end').value = '';
+    document.getElementById('filter-commodity').value = 'ALL';
+    document.getElementById('filter-cause').value = 'ALL';
+    document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p, i) {
+        p.classList.toggle('active', i === 0);
+    });
+    applySpillFilters();
+});
+
+// Apply filters (no-op if all defaults) once spill data has loaded, so the
+// "Showing X of Y" count is correct even before the user touches a filter.
+// allSpillFeatures is set synchronously by pipelines.js before app.js runs,
+// but guard with a short retry in case load order ever changes.
+(function initSpillFilterCount() {
+    if (window.allSpillFeatures) {
+        applySpillFilters();
+    } else {
+        setTimeout(initSpillFilterCount, 50);
+    }
+})();
 
 //  SPILL COST SIMULATOR
 
@@ -552,76 +692,76 @@ document.body.insertAdjacentHTML('beforeend', `
 // Dependent variable: log1p(ADJUSTED_COST)
 // R-squared_adj ~ 0.61, N ~ 2,400 incidents
 var OLS = {
-intercept:        9.42,   // baseline ~$12,300
-age:              0.0118, // per year of equipment age
-log_bbls:         0.847,  // primary volume driver
-high_pop:         0.542,  // high pop area premium
-water_contam:     0.793,  // water contamination cost
-surface_remed:    0.618,  // surface remediation cost
-water_crossing:   0.312,  // crossing multiplier
-aboveground:     -0.287,  // above ground cheaper to remediate
-underwater:       0.445,  // underwater incidents more expensive
-interstate:       0.148,  // interstate regulatory burden
-intrastate:       0.045,  // intrastate (moderate)
-// gathering: 0 (reference category)
-se_mean:          0.078,  // standard error for mean CI
-// State fixed effects (relative to national mean = 0)
-states: {
-    AL:-0.15,AK:0.45,AZ:0.10,AR:-0.20,CA:0.55,CO:0.20,CT:0.35,
-    DE:0.30,FL:0.25,GA:-0.10,HI:0.50,ID:0.05,IL:0.15,IN:-0.05,
-    IA:-0.10,KS:-0.20,KY:-0.15,LA:0.10,ME:0.20,MD:0.40,MA:0.45,
-    MI:0.10,MN:0.15,MS:-0.20,MO:-0.10,MT:0.05,NE:-0.15,NV:0.15,
-    NH:0.30,NJ:0.50,NM:0.00,NY:0.55,NC:-0.05,ND:-0.05,OH:0.05,
-    OK:-0.25,OR:0.25,PA:0.20,RI:0.35,SC:-0.10,SD:-0.10,TN:-0.10,
-    TX:-0.10,UT:0.10,VT:0.25,VA:0.15,WA:0.30,WV:-0.05,WI:0.10,WY:0.05
-}
+    intercept: 9.42,   // baseline ~$12,300
+    age: 0.0118, // per year of equipment age
+    log_bbls: 0.847,  // primary volume driver
+    high_pop: 0.542,  // high pop area premium
+    water_contam: 0.793,  // water contamination cost
+    surface_remed: 0.618,  // surface remediation cost
+    water_crossing: 0.312,  // crossing multiplier
+    aboveground: -0.287,  // above ground cheaper to remediate
+    underwater: 0.445,  // underwater incidents more expensive
+    interstate: 0.148,  // interstate regulatory burden
+    intrastate: 0.045,  // intrastate (moderate)
+    // gathering: 0 (reference category)
+    se_mean: 0.078,  // standard error for mean CI
+    // State fixed effects (relative to national mean = 0)
+    states: {
+        AL: -0.15, AK: 0.45, AZ: 0.10, AR: -0.20, CA: 0.55, CO: 0.20, CT: 0.35,
+        DE: 0.30, FL: 0.25, GA: -0.10, HI: 0.50, ID: 0.05, IL: 0.15, IN: -0.05,
+        IA: -0.10, KS: -0.20, KY: -0.15, LA: 0.10, ME: 0.20, MD: 0.40, MA: 0.45,
+        MI: 0.10, MN: 0.15, MS: -0.20, MO: -0.10, MT: 0.05, NE: -0.15, NV: 0.15,
+        NH: 0.30, NJ: 0.50, NM: 0.00, NY: 0.55, NC: -0.05, ND: -0.05, OH: 0.05,
+        OK: -0.25, OR: 0.25, PA: 0.20, RI: 0.35, SC: -0.10, SD: -0.10, TN: -0.10,
+        TX: -0.10, UT: 0.10, VT: 0.25, VA: 0.15, WA: 0.30, WV: -0.05, WI: 0.10, WY: 0.05
+    }
 };
 
 // Cost breakdown proportions (from PHMSA cost category analysis)
 var COST_SPLIT = {
-'Operator Paid':    { pct: 0.38, color: '#4a9eca' },
-'Property Damage':  { pct: 0.22, color: '#e05c2a' },
-'Emergency Resp.':  { pct: 0.18, color: '#f39c12' },
-'Environmental':    { pct: 0.15, color: '#2ecc71' },
-'Other':            { pct: 0.07, color: '#95a5a6' },
+    'Operator Paid': { pct: 0.38, color: '#4a9eca' },
+    'Property Damage': { pct: 0.22, color: '#e05c2a' },
+    'Emergency Resp.': { pct: 0.18, color: '#f39c12' },
+    'Environmental': { pct: 0.15, color: '#2ecc71' },
+    'Other': { pct: 0.07, color: '#95a5a6' },
 };
 
 // State detection from lat/lng
 // Bounding boxes for all 48 contiguous states + AK + HI
 var STATE_BOXES = [
-    {s:'ME',n:47.5,S:43.0,w:-71.1,e:-66.9},{s:'NH',n:45.3,S:42.7,w:-72.6,e:-70.6},
-    {s:'VT',n:45.0,S:42.7,w:-73.5,e:-71.5},{s:'MA',n:42.9,S:41.2,w:-73.5,e:-69.9},
-    {s:'RI',n:42.0,S:41.1,w:-71.9,e:-71.1},{s:'CT',n:42.1,S:40.9,w:-73.7,e:-71.8},
-    {s:'NY',n:45.0,S:40.5,w:-79.8,e:-71.9},{s:'NJ',n:41.4,S:38.9,w:-75.6,e:-73.9},
-    {s:'PA',n:42.3,S:39.7,w:-80.5,e:-74.7},{s:'DE',n:39.8,S:38.4,w:-75.8,e:-75.0},
-    {s:'MD',n:39.7,S:37.9,w:-79.5,e:-75.0},{s:'VA',n:39.5,S:36.5,w:-83.7,e:-75.2},
-    {s:'WV',n:40.6,S:37.2,w:-82.6,e:-77.7},{s:'NC',n:36.6,S:33.8,w:-84.3,e:-75.5},
-    {s:'SC',n:35.2,S:32.0,w:-83.4,e:-78.5},{s:'GA',n:35.0,S:30.4,w:-85.6,e:-80.8},
-    {s:'FL',n:31.0,S:24.5,w:-87.6,e:-80.0},{s:'AL',n:35.0,S:30.2,w:-88.5,e:-84.9},
-    {s:'MS',n:35.0,S:30.2,w:-91.7,e:-88.1},{s:'TN',n:36.7,S:35.0,w:-90.3,e:-81.6},
-    {s:'KY',n:39.1,S:36.5,w:-89.6,e:-81.9},{s:'OH',n:42.3,S:38.4,w:-84.8,e:-80.5},
-    {s:'IN',n:41.8,S:37.8,w:-88.1,e:-84.8},{s:'MI',n:48.3,S:41.7,w:-90.4,e:-82.1},
-    {s:'WI',n:47.1,S:42.5,w:-92.9,e:-86.8},{s:'IL',n:42.5,S:36.9,w:-91.5,e:-87.0},
-    {s:'MN',n:49.4,S:43.5,w:-97.2,e:-89.5},{s:'IA',n:43.5,S:40.4,w:-96.6,e:-90.1},
-    {s:'MO',n:40.6,S:36.0,w:-95.8,e:-89.1},{s:'AR',n:36.5,S:33.0,w:-94.6,e:-89.6},
-    {s:'LA',n:33.0,S:28.9,w:-94.1,e:-88.8},{s:'TX',n:36.5,S:25.8,w:-106.7,e:-93.5},
-    {s:'OK',n:37.0,S:33.6,w:-103.0,e:-94.4},{s:'KS',n:40.0,S:36.9,w:-102.1,e:-94.6},
-    {s:'NE',n:43.0,S:40.0,w:-104.1,e:-95.3},{s:'SD',n:45.9,S:42.5,w:-104.1,e:-96.4},
-    {s:'ND',n:49.0,S:45.9,w:-104.1,e:-96.5},{s:'MT',n:49.0,S:44.4,w:-116.1,e:-104.0},
-    {s:'WY',n:45.0,S:41.0,w:-111.1,e:-104.0},{s:'CO',n:41.0,S:37.0,w:-109.1,e:-102.0},
-    {s:'NM',n:37.0,S:31.3,w:-109.1,e:-103.0},{s:'AZ',n:37.0,S:31.3,w:-114.8,e:-109.0},
-    {s:'UT',n:42.0,S:37.0,w:-114.1,e:-109.0},{s:'NV',n:42.0,S:35.0,w:-120.0,e:-114.0},
-    {s:'ID',n:49.0,S:42.0,w:-117.3,e:-111.0},{s:'WA',n:49.0,S:45.5,w:-124.8,e:-116.9},
-    {s:'OR',n:46.3,S:42.0,w:-124.6,e:-116.5},{s:'CA',n:42.0,S:32.5,w:-124.5,e:-114.1},
-    {s:'AK',n:71.5,S:54.0,w:-168.0,e:-130.0},{s:'HI',n:22.5,S:18.0,w:-160.0,e:-154.0}
+    { s: 'ME', n: 47.5, S: 43.0, w: -71.1, e: -66.9 }, { s: 'NH', n: 45.3, S: 42.7, w: -72.6, e: -70.6 },
+    { s: 'VT', n: 45.0, S: 42.7, w: -73.5, e: -71.5 }, { s: 'MA', n: 42.9, S: 41.2, w: -73.5, e: -69.9 },
+    { s: 'RI', n: 42.0, S: 41.1, w: -71.9, e: -71.1 }, { s: 'CT', n: 42.1, S: 40.9, w: -73.7, e: -71.8 },
+    { s: 'NY', n: 45.0, S: 40.5, w: -79.8, e: -71.9 }, { s: 'NJ', n: 41.4, S: 38.9, w: -75.6, e: -73.9 },
+    { s: 'PA', n: 42.3, S: 39.7, w: -80.5, e: -74.7 }, { s: 'DE', n: 39.8, S: 38.4, w: -75.8, e: -75.0 },
+    { s: 'MD', n: 39.7, S: 37.9, w: -79.5, e: -75.0 }, { s: 'VA', n: 39.5, S: 36.5, w: -83.7, e: -75.2 },
+    { s: 'WV', n: 40.6, S: 37.2, w: -82.6, e: -77.7 }, { s: 'NC', n: 36.6, S: 33.8, w: -84.3, e: -75.5 },
+    { s: 'SC', n: 35.2, S: 32.0, w: -83.4, e: -78.5 }, { s: 'GA', n: 35.0, S: 30.4, w: -85.6, e: -80.8 },
+    { s: 'FL', n: 31.0, S: 24.5, w: -87.6, e: -80.0 }, { s: 'AL', n: 35.0, S: 30.2, w: -88.5, e: -84.9 },
+    { s: 'MS', n: 35.0, S: 30.2, w: -91.7, e: -88.1 }, { s: 'TN', n: 36.7, S: 35.0, w: -90.3, e: -81.6 },
+    { s: 'KY', n: 39.1, S: 36.5, w: -89.6, e: -81.9 }, { s: 'OH', n: 42.3, S: 38.4, w: -84.8, e: -80.5 },
+    { s: 'IN', n: 41.8, S: 37.8, w: -88.1, e: -84.8 }, { s: 'MI', n: 48.3, S: 41.7, w: -90.4, e: -82.1 },
+    { s: 'WI', n: 47.1, S: 42.5, w: -92.9, e: -86.8 }, { s: 'IL', n: 42.5, S: 36.9, w: -91.5, e: -87.0 },
+    { s: 'MN', n: 49.4, S: 43.5, w: -97.2, e: -89.5 }, { s: 'IA', n: 43.5, S: 40.4, w: -96.6, e: -90.1 },
+    { s: 'MO', n: 40.6, S: 36.0, w: -95.8, e: -89.1 }, { s: 'AR', n: 36.5, S: 33.0, w: -94.6, e: -89.6 },
+    { s: 'LA', n: 33.0, S: 28.9, w: -94.1, e: -88.8 }, { s: 'TX', n: 36.5, S: 25.8, w: -106.7, e: -93.5 },
+    { s: 'OK', n: 37.0, S: 33.6, w: -103.0, e: -94.4 }, { s: 'KS', n: 40.0, S: 36.9, w: -102.1, e: -94.6 },
+    { s: 'NE', n: 43.0, S: 40.0, w: -104.1, e: -95.3 }, { s: 'SD', n: 45.9, S: 42.5, w: -104.1, e: -96.4 },
+    { s: 'ND', n: 49.0, S: 45.9, w: -104.1, e: -96.5 }, { s: 'MT', n: 49.0, S: 44.4, w: -116.1, e: -104.0 },
+    { s: 'WY', n: 45.0, S: 41.0, w: -111.1, e: -104.0 }, { s: 'CO', n: 41.0, S: 37.0, w: -109.1, e: -102.0 },
+    { s: 'NM', n: 37.0, S: 31.3, w: -109.1, e: -103.0 }, { s: 'AZ', n: 37.0, S: 31.3, w: -114.8, e: -109.0 },
+    { s: 'UT', n: 42.0, S: 37.0, w: -114.1, e: -109.0 }, { s: 'NV', n: 42.0, S: 35.0, w: -120.0, e: -114.0 },
+    { s: 'ID', n: 49.0, S: 42.0, w: -117.3, e: -111.0 }, { s: 'WA', n: 49.0, S: 45.5, w: -124.8, e: -116.9 },
+    { s: 'OR', n: 46.3, S: 42.0, w: -124.6, e: -116.5 }, { s: 'CA', n: 42.0, S: 32.5, w: -124.5, e: -114.1 },
+    { s: 'AK', n: 71.5, S: 54.0, w: -168.0, e: -130.0 }, { s: 'HI', n: 22.5, S: 18.0, w: -160.0, e: -154.0 }
 ];
 
 function detectState(lat, lng) {
-for (var i = 0; i < STATE_BOXES.length; i++) {
-    var b = STATE_BOXES[i];
-    if (lat >= b.S && lat <= b.n && lng >= b.w && lng <= b.e) return b.s;
-}
-return 'TX'; 
+    for (var i = 0; i < STATE_BOXES.length; i++) {
+        var b = STATE_BOXES[i];
+        if (lat >= b.S && lat <= b.n && lng >= b.w && lng <= b.e) return b.s;
+    }
+    return 'TX';
 }
 
 // Simulator state 
@@ -630,121 +770,122 @@ var simClickLatLng = null;
 
 // Open simulator
 function openSimulator(props, latlng) {
-simClickLatLng = latlng;
-simState = detectState(latlng.lat, latlng.lng);
+    simClickLatLng = latlng;
+    simState = detectState(latlng.lat, latlng.lng);
 
-document.getElementById('sim-pipename').textContent =
-    (props.Pipename || props.pipename || 'Unknown');
-document.getElementById('sim-opername').textContent =
-    (props.Opername || props.opername || 'Unknown');
-document.getElementById('sim-state-display').textContent =
-    simState + ' (detected from coordinates)';
+    document.getElementById('sim-pipename').textContent =
+        (props.Pipename || props.pipename || 'Unknown');
+    document.getElementById('sim-opername').textContent =
+        (props.Opername || props.opername || 'Unknown');
+    document.getElementById('sim-state-display').textContent =
+        simState + ' (detected from coordinates)';
 
-// Reset results
-document.getElementById('sim-results').classList.remove('visible');
-document.getElementById('sim-backdrop').classList.add('open');
+    // Reset results
+    document.getElementById('sim-results').classList.remove('visible');
+    document.getElementById('sim-backdrop').classList.add('open');
 
-gtag('event', 'run_simulation', {
+    gtag('event', 'run_simulation', {
         'pipeline_operator': props.opername || props.Opername || 'Unknown',
         'pipeline_name': props.Pipename || props.pipename || 'Unknown'
     });
 }
 
 // Close simulator  
-document.getElementById('sim-close-btn').addEventListener('click', function() {
-document.getElementById('sim-backdrop').classList.remove('open');
+document.getElementById('sim-close-btn').addEventListener('click', function () {
+    document.getElementById('sim-backdrop').classList.remove('open');
 });
-document.getElementById('sim-backdrop').addEventListener('click', function(e) {
-if (e.target === this) this.classList.remove('open');
+document.getElementById('sim-backdrop').addEventListener('click', function (e) {
+    if (e.target === this) this.classList.remove('open');
 });
 
 // Slider live readouts 
-document.getElementById('sim-bbls').addEventListener('input', function() {
-document.getElementById('sim-bbls-val').textContent = this.value + ' bbls';
+document.getElementById('sim-bbls').addEventListener('input', function () {
+    document.getElementById('sim-bbls-val').textContent = this.value + ' bbls';
 });
 
 // Run simulation 
-document.getElementById('sim-run-btn').addEventListener('click', function() {
-var age    = 50; // Hardcoded: 50-year equipment age baseline
-var bbls   = parseFloat(document.getElementById('sim-bbls').value);
-var hipop  = document.getElementById('sim-hipop').checked  ? 1 : 0;
-var water  = document.getElementById('sim-water').checked  ? 1 : 0;
-var remed  = document.getElementById('sim-remed').checked  ? 1 : 0;
-var wcross = document.getElementById('sim-wcross').checked ? 1 : 0;
-var facility = document.getElementById('sim-facility').value;
-var area     = document.getElementById('sim-area').value;
-var state    = simState || 'TX';
+document.getElementById('sim-run-btn').addEventListener('click', function () {
+    var age = 50; // Hardcoded: 50-year equipment age baseline
+    var bbls = parseFloat(document.getElementById('sim-bbls').value);
+    var hipop = document.getElementById('sim-hipop').checked ? 1 : 0;
+    var water = document.getElementById('sim-water').checked ? 1 : 0;
+    var remed = document.getElementById('sim-remed').checked ? 1 : 0;
+    var wcross = document.getElementById('sim-wcross').checked ? 1 : 0;
+    var facility = document.getElementById('sim-facility').value;
+    var area = document.getElementById('sim-area').value;
+    var state = simState || 'TX';
 
-var logBbls = Math.log1p(bbls);
+    var logBbls = Math.log1p(bbls);
 
-// Linear combination (OLS on log scale)
-var linPred = OLS.intercept
-    + OLS.age         * age
-    + OLS.log_bbls    * logBbls
-    + OLS.high_pop    * hipop
-    + OLS.water_contam * water
-    + OLS.surface_remed * remed
-    + OLS.water_crossing * wcross
-    + (area === 'aboveground' ? OLS.aboveground : 0)
-    + (area === 'underwater'  ? OLS.underwater  : 0)
-    + (facility === 'interstate' ? OLS.interstate : 0)
-    + (facility === 'intrastate' ? OLS.intrastate : 0)
-    + (OLS.states[state] || 0);
+    // Linear combination (OLS on log scale)
+    var linPred = OLS.intercept
+        + OLS.age * age
+        + OLS.log_bbls * logBbls
+        + OLS.high_pop * hipop
+        + OLS.water_contam * water
+        + OLS.surface_remed * remed
+        + OLS.water_crossing * wcross
+        + (area === 'aboveground' ? OLS.aboveground : 0)
+        + (area === 'underwater' ? OLS.underwater : 0)
+        + (facility === 'interstate' ? OLS.interstate : 0)
+        + (facility === 'intrastate' ? OLS.intrastate : 0)
+        + (OLS.states[state] || 0);
 
-// Back-transform from log scale
-var predCost  = Math.expm1(linPred);
-var lowerMean = Math.expm1(linPred - 1.96 * OLS.se_mean);
-var upperMean = Math.expm1(linPred + 1.96 * OLS.se_mean);
+    // Back-transform from log scale
+    var predCost = Math.expm1(linPred);
+    var lowerMean = Math.expm1(linPred - 1.96 * OLS.se_mean);
+    var upperMean = Math.expm1(linPred + 1.96 * OLS.se_mean);
 
-// Format currency 
-function fmt(v) {
-    if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
-    if (v >= 1e3) return '$' + Math.round(v).toLocaleString();
-    return '$' + Math.round(v).toLocaleString();
-}
+    // Format currency 
+    function fmt(v) {
+        if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
+        if (v >= 1e3) return '$' + Math.round(v).toLocaleString();
+        return '$' + Math.round(v).toLocaleString();
+    }
 
-document.getElementById('res-cost').textContent = fmt(predCost);
-document.getElementById('res-ci').innerHTML =
-    '95% Confidence Interval: <strong>' +
-    fmt(lowerMean) + ' &mdash; ' + fmt(upperMean) + '</strong>';
+    document.getElementById('res-cost').textContent = fmt(predCost);
+    document.getElementById('res-ci').innerHTML =
+        '95% Confidence Interval: <strong>' +
+        fmt(lowerMean) + ' &mdash; ' + fmt(upperMean) + '</strong>';
 
-// Cost breakdown bars
-var breakdown = document.getElementById('res-breakdown');
-breakdown.innerHTML = '';
-var cats = Object.keys(COST_SPLIT);
-cats.forEach(function(cat) {
-    var info  = COST_SPLIT[cat];
-    var amt   = predCost * info.pct;
-    var row   = document.createElement('div');
-    row.className = 'bar-row';
-    row.innerHTML =
-        '<span class="bar-label">' + cat + '</span>' +
-        '<div class="bar-track"><div class="bar-fill" style="width:' +
-        (info.pct * 100) + '%;background:' + info.color + '"></div></div>' +
-        '<span class="bar-amount">' + fmt(amt) + '</span>';
-    breakdown.appendChild(row);
-});
+    // Cost breakdown bars
+    var breakdown = document.getElementById('res-breakdown');
+    breakdown.innerHTML = '';
+    var cats = Object.keys(COST_SPLIT);
+    cats.forEach(function (cat) {
+        var info = COST_SPLIT[cat];
+        var amt = predCost * info.pct;
+        var row = document.createElement('div');
+        row.className = 'bar-row';
+        row.innerHTML =
+            '<span class="bar-label">' + cat + '</span>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:' +
+            (info.pct * 100) + '%;background:' + info.color + '"></div></div>' +
+            '<span class="bar-amount">' + fmt(amt) + '</span>';
+        breakdown.appendChild(row);
+    });
 
-// Driver pills  
-var drivers = document.getElementById('res-drivers');
-drivers.innerHTML = '';
-var pills = [];
-pills.push({label: '50 yr equipment (baseline)', cls: 'med'});
-pills.push({label: bbls + ' bbls released', cls: bbls > 200 ? 'high' : bbls > 50 ? 'med' : ''});
-if (hipop)  pills.push({label: 'High population', cls: 'high'});
-if (water)  pills.push({label: 'Water contamination', cls: 'high'});
-if (remed)  pills.push({label: 'Surface remediation', cls: 'med'});
-if (wcross) pills.push({label: 'Water crossing', cls: 'med'});
-if (area === 'underwater')   pills.push({label: 'Underwater incident', cls: 'high'});
-if (facility === 'interstate') pills.push({label: 'Interstate', cls: ''});
-pills.push({label: 'State: ' + state, cls: (OLS.states[state]||0) > 0.3 ? 'med' : ''});
-pills.forEach(function(p) {
-    var el = document.createElement('div');
-    el.className = 'driver-pill ' + p.cls;
-    el.textContent = p.label;
-    drivers.appendChild(el);
-});
+    // Driver pills  
+    var drivers = document.getElementById('res-drivers');
+    drivers.innerHTML = '';
+    var pills = [];
+    pills.push({ label: '50 yr equipment (baseline)', cls: 'med' });
+    pills.push({ label: bbls + ' bbls released', cls: bbls > 200 ? 'high' : bbls > 50 ? 'med' : '' });
+    if (hipop) pills.push({ label: 'High population', cls: 'high' });
+    if (water) pills.push({ label: 'Water contamination', cls: 'high' });
+    if (remed) pills.push({ label: 'Surface remediation', cls: 'med' });
+    if (wcross) pills.push({ label: 'Water crossing', cls: 'med' });
+    if (area === 'underwater') pills.push({ label: 'Underwater incident', cls: 'high' });
+    if (facility === 'interstate') pills.push({ label: 'Interstate', cls: '' });
+    pills.push({ label: 'State: ' + state, cls: (OLS.states[state] || 0) > 0.3 ? 'med' : '' });
+    pills.forEach(function (p) {
+        var el = document.createElement('div');
+        el.className = 'driver-pill ' + p.cls;
+        el.textContent = p.label;
+        drivers.appendChild(el);
+    });
 
+    document.getElementById('sim-results').classList.add('visible');
 document.getElementById('sim-results').classList.add('visible');
 });
 
