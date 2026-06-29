@@ -420,6 +420,24 @@ if (activePipeline !== null) {
 function setSpills(on) {
     spillsOn = on;
     document.getElementById('spills-checkbox').checked = on;
+    
+    // Lock or unlock availability of the color configuration switch
+    var sevContainer = document.getElementById('severity-toggle-container');
+    var sevCheckbox = document.getElementById('severity-gradient-checkbox');
+    if (sevContainer) {
+        if (on) {
+            sevContainer.style.opacity = "1";
+            sevContainer.style.pointerEvents = "auto";
+        } else {
+            sevContainer.style.opacity = "0.5";
+            sevContainer.style.pointerEvents = "none";
+            if (sevCheckbox) {
+                sevCheckbox.checked = false; // Turn off toggle if spills layer is disabled
+                toggleSpillSeverity(false);
+            }
+        }
+    }
+
     if (on) {
         showToast('Loading spill data…');
         setTimeout(function() { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(spillsLayer); }, 30);
@@ -733,4 +751,72 @@ pills.forEach(function(p) {
 });
 
 document.getElementById('sim-results').classList.add('visible');
+});
+
+// barrel coloring gradient
+function getGradientColor(bbls) {
+    if (bbls <= 0) return '#fee08b'; 
+    var score = Math.log1p(bbls) / Math.log1p(1000); 
+    if (score > 1) score = 1; 
+
+    var r, g, b;
+    if (score < 0.25) {
+        var t = score / 0.25;
+        r = Math.round(254 + (253 - 254) * t); g = Math.round(224 + (187 - 224) * t); b = Math.round(139 + (132 - 139) * t);
+    } else if (score < 0.55) {
+        var t = (score - 0.25) / 0.30;
+        r = Math.round(253 + (239 - 253) * t); g = Math.round(187 + (101 - 187) * t); b = Math.round(132 + (72 - 132) * t);
+    } else if (score < 0.82) {
+        var t = (score - 0.55) / 0.27;
+        r = Math.round(239 + (215 - 239) * t); g = Math.round(101 + (48 - 101) * t); b = Math.round(72 + (39 - 72) * t);
+    } else {
+        var t = (score - 0.82) / 0.18;
+        r = Math.round(215 + (74 - 215) * t); g = Math.round(48 + (0 - 48) * t); b = Math.round(39 + (0 - 39) * t);
+    }
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function toggleSpillSeverity(useGradient) {
+    // Locate either the target sublayer collection variable or global container references
+    var targets = typeof geo_json_74a8ff648bc5b9190beaecc887f54037 !== 'undefined' 
+        ? [geo_json_74a8ff648bc5b9190beaecc887f54037] 
+        : (typeof spillsLayer !== 'undefined' ? [spillsLayer] : []);
+
+    targets.forEach(function(layerInstance) {
+        if (!layerInstance || typeof layerInstance.setStyle !== 'function') return;
+
+        layerInstance.setStyle(function(feature) {
+            var bbls = parseFloat(feature.properties.UNINTENTIONAL_RELEASE_BBLS) || 0;
+            
+            if (useGradient) {
+                return {
+                    radius: Math.max(3.5, Math.log1p(bbls) * 2.2),
+                    fillColor: getGradientColor(bbls),
+                    color: "#0f172a",
+                    weight: 0.7,
+                    opacity: 0.85,
+                    fillOpacity: 0.8
+                };
+            } else {
+                // Revert to the default uniform presentation configuration
+                return {
+                    radius: 4,
+                    fillColor: "#ff4444", 
+                    color: "black",
+                    weight: 1,
+                    opacity: 1.0,
+                    fillOpacity: 0.8
+                };
+            }
+        });
+    });
+}
+document.getElementById('severity-toggle-container').addEventListener('click', function() {
+    var checkbox = document.getElementById('severity-gradient-checkbox');
+    if (checkbox) {
+        // Toggle the checkbox state
+        checkbox.checked = !checkbox.checked;
+        // Trigger the manual update function with the new state
+        toggleSpillSeverity(checkbox.checked);
+    }
 });
