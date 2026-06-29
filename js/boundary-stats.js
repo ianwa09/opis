@@ -15,6 +15,8 @@ window.addEventListener('load', function() {
     mapInstance.pm.addControls({
         position: 'topleft',
         drawCircleMarker: false,
+        drawCircle: false,
+        drawText: false,
         drawMarker: false,
         drawPolyline: false,
         drawRectangle: true,
