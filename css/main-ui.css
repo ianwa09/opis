@@ -1152,3 +1152,41 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     display: flex;
     justify-content: flex-end;
 }
+
+/* Sizing layout for the modal text string inserts.
+   IMPORTANT: this rule only controls size/spacing. It deliberately does NOT
+   touch background-image / mask-image / background-color — those belong
+   entirely to Geoman's own CSS (.control-icon, .pm-icon, .leaflet-pm-icon-*),
+   which is already loaded globally via leaflet-geoman.css in index.html.
+   As long as we don't override those properties here, Geoman's real icon
+   rules apply automatically to any element with the matching classes,
+   anywhere on the page — not just inside the live toolbar DOM. */
+.modal-geoman-icon {
+  display: inline-block !important;
+  width: 18px !important;
+  height: 18px !important;
+  vertical-align: text-bottom !important;
+  margin: 0 4px !important;
+}
+
+/* The real Geoman CSS scopes its icon backgrounds as
+   ".leaflet-pm-toolbar .leaflet-pm-icon-*", so a .leaflet-pm-toolbar
+   ancestor is required for the icon to render anywhere on the page.
+   We reuse that class name on small inline wrapper spans inside modal
+   text, but must strip out the toolbar's own chrome (background,
+   border, padding, flex layout, position) so it doesn't look like a
+   floating toolbar fragment — only the icon background-image rule
+   from Geoman's CSS should carry over.
+   Scoped to .tut-step-body so the real, on-map toolbar is completely
+   unaffected. */
+.tut-step-body .leaflet-pm-toolbar {
+  display: inline !important;
+  position: static !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
