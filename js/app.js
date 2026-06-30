@@ -452,11 +452,9 @@ document.getElementById('spills-checkbox').addEventListener('change', function (
     setSpills(this.checked);
 });
 
-// ── Spill filters ──
-// Filtering rebuilds the spills GeoJSON layer (geo_json_74a8ff648bc5b9190beaecc887f54037)
-// from the full cached dataset (window.allSpillFeatures, set in index.html) so that
-// boundary-stats.js — which reads spillsLayer.toGeoJSON() — automatically only
-// sees the currently-filtered incidents with no changes needed on its end.
+// Spill filters 
+// Filtering rebuilds the spills GeoJSON layer (geo_json_74a8ff648bc5b9190beaecc887f54037) from the full cached dataset (window.allSpillFeatures, set in index.html) so that
+// boundary-stats.js automatically only sees the currently-filtered incidents with no changes needed on its end.
 
 var spillFilters = {
     dateStart: null,   // 'YYYY-MM-DD' or null
@@ -467,8 +465,7 @@ var spillFilters = {
 };
 
 // Parses PHMSA's "M/D/YYYY H:MM" LOCAL_DATETIME strings into a Date.
-// Returns null if unparseable so those features are never silently dropped
-// by a date filter (they're excluded only by other active filters).
+// Returns null if unparseable so those features are never silently dropped by a date filter (they're excluded only by other active filters).
 function parseSpillDate(raw) {
     if (!raw) return null;
     var parts = raw.split(' ')[0].split('/');
@@ -516,6 +513,9 @@ function applySpillFilters() {
         type: 'FeatureCollection',
         features: filtered
     });
+
+    var sevCheckbox = document.getElementById('severity-gradient-checkbox');
+    toggleSpillSeverity(!!(sevCheckbox && sevCheckbox.checked));
 
     var countVal = document.getElementById('spill-filters-count-val');
     var countTotal = document.getElementById('spill-filters-count-total');
