@@ -449,6 +449,7 @@ function setSpills(on) {
         showToast('Loading spill data…');
         setTimeout(function () { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(spillsLayer); }, 30);
     } else {
+        if (typeof stopSpillTimelapse === 'function') stopSpillTimelapse();
         map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(spillsLayer);
     }
 }
@@ -472,6 +473,16 @@ var spillFilters = {
     minBbls: 0
 };
 
+var spillPlayback = {
+    timer: null,
+    playing: false,
+    start: null,
+    end: null,
+    features: [],
+    nextIndex: 0,
+    currentDate: null
+};
+
 // Parses PHMSA's "M/D/YYYY H:MM" LOCAL_DATETIME strings into a Date.
 // Returns null if unparseable so those features are never silently dropped by a date filter (they're excluded only by other active filters).
 function parseSpillDate(raw) {
@@ -483,14 +494,25 @@ function parseSpillDate(raw) {
     return new Date(year, month - 1, day);
 }
 
+function parseDateInput(raw) {
+    if (!raw) return null;
+    var parts = raw.split('-');
+    if (parts.length !== 3) return null;
+    return new Date(
+        parseInt(parts[0], 10),
+        parseInt(parts[1], 10) - 1,
+        parseInt(parts[2], 10)
+    );
+}
+
 function featureMatchesFilters(feature) {
     var props = feature.properties || {};
 
     if (spillFilters.dateStart || spillFilters.dateEnd) {
         var d = parseSpillDate(props.LOCAL_DATETIME);
         if (d) {
-            if (spillFilters.dateStart && d < new Date(spillFilters.dateStart)) return false;
-            if (spillFilters.dateEnd && d > new Date(spillFilters.dateEnd)) return false;
+            if (spillFilters.dateStart && d < parseDateInput(spillFilters.dateStart)) return false;
+            if (spillFilters.dateEnd && d > parseDateInput(spillFilters.dateEnd)) return false;
         }
     }
 
@@ -537,6 +559,161 @@ function applySpillFilters() {
     if (countTotal) countTotal.textContent = window.allSpillFeatures.length.toLocaleString();
 }
 
+function formatPlaybackDate(date) {
+    return date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+}
+
+function getSpillPlaybackBounds() {
+    if (!window.allSpillFeatures || !window.allSpillFeatures.length) return null;
+
+    var dates = window.allSpillFeatures
+        .map(function (feature) { return parseSpillDate(feature.properties.LOCAL_DATETIME); })
+        .filter(Boolean);
+    if (!dates.length) return null;
+
+    var datasetStart = new Date(Math.min.apply(null, dates));
+    var datasetEnd = new Date(Math.max.apply(null, dates));
+    var start = parseDateInput(spillFilters.dateStart) || datasetStart;
+    var end = parseDateInput(spillFilters.dateEnd) || datasetEnd;
+    if (start > end) return null;
+    return { start: start, end: end };
+}
+
+function setSpillPlaybackButton(playing) {
+    var button = document.getElementById('spill-timelapse-play');
+    if (!button) return;
+    button.innerHTML = playing
+        ? '<i class="bi bi-pause-fill"></i>'
+        : '<i class="bi bi-play-fill"></i>';
+    button.setAttribute('aria-label', playing ? 'Pause spill timeline' : 'Play spill timeline');
+    button.title = playing ? 'Pause spill timeline' : 'Play spill timeline';
+}
+
+function stopSpillTimelapse() {
+    if (spillPlayback.timer) clearInterval(spillPlayback.timer);
+    spillPlayback.timer = null;
+    spillPlayback.playing = false;
+    setSpillPlaybackButton(false);
+}
+
+function resetSpillTimelapse() {
+    stopSpillTimelapse();
+    var bounds = getSpillPlaybackBounds();
+    var range = document.getElementById('spill-timelapse-range');
+    var play = document.getElementById('spill-timelapse-play');
+    var status = document.getElementById('spill-timelapse-status');
+    spillPlayback.features = [];
+    spillPlayback.nextIndex = 0;
+    spillPlayback.currentDate = null;
+
+    if (!bounds) {
+        range.disabled = true;
+        play.disabled = true;
+        status.textContent = 'Choose a valid date range';
+        return;
+    }
+
+    spillPlayback.start = bounds.start;
+    spillPlayback.end = bounds.end;
+    var totalDays = Math.max(0, Math.round((bounds.end - bounds.start) / 86400000));
+    range.min = 0;
+    range.max = totalDays;
+    range.value = totalDays;
+    range.disabled = false;
+    play.disabled = false;
+    status.textContent =
+        formatPlaybackDate(bounds.start) + ' to ' + formatPlaybackDate(bounds.end);
+}
+
+function buildSpillPlaybackFeatures() {
+    spillPlayback.features = window.allSpillFeatures
+        .filter(featureMatchesFilters)
+        .map(function (feature) {
+            return { feature: feature, date: parseSpillDate(feature.properties.LOCAL_DATETIME) };
+        })
+        .filter(function (item) { return item.date; })
+        .sort(function (a, b) { return a.date - b.date; });
+    spillPlayback.nextIndex = 0;
+}
+
+function renderSpillPlaybackDate(date) {
+    var layer = geo_json_74a8ff648bc5b9190beaecc887f54037;
+    var targetIndex = 0;
+    while (
+        targetIndex < spillPlayback.features.length &&
+        spillPlayback.features[targetIndex].date <= date
+    ) {
+        targetIndex++;
+    }
+
+    var rebuilding = targetIndex < spillPlayback.nextIndex;
+    if (rebuilding) {
+        layer.clearLayers();
+        spillPlayback.nextIndex = 0;
+    }
+
+    var visibleFeatures = spillPlayback.features
+        .slice(0, targetIndex)
+        .map(function (item) { return item.feature; });
+    prepareCoincidentSpills(visibleFeatures);
+
+    var newFeatures = spillPlayback.features
+        .slice(spillPlayback.nextIndex, targetIndex)
+        .map(function (item) { return item.feature; });
+    if (newFeatures.length) {
+        layer.addData({ type: 'FeatureCollection', features: newFeatures });
+    }
+
+    spillPlayback.nextIndex = targetIndex;
+    spillPlayback.currentDate = date;
+    positionCoincidentSpills();
+
+    var sevCheckbox = document.getElementById('severity-gradient-checkbox');
+    if (sevCheckbox && sevCheckbox.checked) toggleSpillSeverity(true);
+
+    document.getElementById('spill-filters-count-val').textContent =
+        targetIndex.toLocaleString();
+    document.getElementById('spill-filters-count-total').textContent =
+        window.allSpillFeatures.length.toLocaleString();
+    document.getElementById('spill-timelapse-status').textContent =
+        formatPlaybackDate(date) + ' | ' + targetIndex.toLocaleString() + ' incidents';
+}
+
+function startSpillTimelapse() {
+    var range = document.getElementById('spill-timelapse-range');
+    if (spillPlayback.playing) {
+        stopSpillTimelapse();
+        return;
+    }
+    if (!spillPlayback.start || !spillPlayback.end) resetSpillTimelapse();
+    if (!spillPlayback.start || range.disabled) return;
+
+    if (!spillsOn) setSpills(true);
+
+    if (!spillPlayback.features.length || Number(range.value) >= Number(range.max)) {
+        buildSpillPlaybackFeatures();
+        geo_json_74a8ff648bc5b9190beaecc887f54037.clearLayers();
+        range.value = 0;
+        renderSpillPlaybackDate(new Date(spillPlayback.start));
+    }
+
+    spillPlayback.playing = true;
+    setSpillPlaybackButton(true);
+    var step = Math.max(1, Math.ceil(Number(range.max) / 80));
+    spillPlayback.timer = setInterval(function () {
+        var nextValue = Math.min(Number(range.max), Number(range.value) + step);
+        range.value = nextValue;
+        var nextDate = new Date(spillPlayback.start);
+        nextDate.setDate(nextDate.getDate() + nextValue);
+        renderSpillPlaybackDate(nextDate);
+        if (nextValue >= Number(range.max)) stopSpillTimelapse();
+    }, 180);
+}
+
 // Collapse/expand the filter panel
 document.getElementById('spill-filters-toggle').addEventListener('click', function () {
     document.getElementById('spill-filters').classList.toggle('collapsed');
@@ -545,28 +722,33 @@ document.getElementById('spill-filters-toggle').addEventListener('click', functi
 // Date inputs
 document.getElementById('filter-date-start').addEventListener('change', function () {
     spillFilters.dateStart = this.value || null;
+    resetSpillTimelapse();
     applySpillFilters();
 });
 document.getElementById('filter-date-end').addEventListener('change', function () {
     spillFilters.dateEnd = this.value || null;
+    resetSpillTimelapse();
     applySpillFilters();
 });
 
 // Commodity dropdown
 document.getElementById('filter-commodity').addEventListener('change', function () {
     spillFilters.commodity = this.value;
+    resetSpillTimelapse();
     applySpillFilters();
 });
 
 // Cause dropdown
 document.getElementById('filter-cause').addEventListener('change', function () {
     spillFilters.cause = this.value;
+    resetSpillTimelapse();
     applySpillFilters();
 });
 
 // State dropdown
 document.getElementById('filter-state').addEventListener('change', function () {
     spillFilters.state = this.value;
+    resetSpillTimelapse();
     applySpillFilters();
 });
 
@@ -578,6 +760,7 @@ document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function 
         });
         pill.classList.add('active');
         spillFilters.minBbls = parseFloat(pill.dataset.minBbls) || 0;
+        resetSpillTimelapse();
         applySpillFilters();
     });
 });
@@ -593,7 +776,17 @@ document.getElementById('spill-filters-reset').addEventListener('click', functio
     document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p, i) {
         p.classList.toggle('active', i === 0);
     });
+    resetSpillTimelapse();
     applySpillFilters();
+});
+
+document.getElementById('spill-timelapse-play').addEventListener('click', startSpillTimelapse);
+document.getElementById('spill-timelapse-range').addEventListener('input', function () {
+    stopSpillTimelapse();
+    if (!spillPlayback.features.length) buildSpillPlaybackFeatures();
+    var date = new Date(spillPlayback.start);
+    date.setDate(date.getDate() + Number(this.value));
+    renderSpillPlaybackDate(date);
 });
 
 // Apply filters (no-op if all defaults) once spill data has loaded, so the
@@ -602,6 +795,7 @@ document.getElementById('spill-filters-reset').addEventListener('click', functio
 // but guard with a short retry in case load order ever changes.
 (function initSpillFilterCount() {
     if (window.allSpillFeatures) {
+        resetSpillTimelapse();
         applySpillFilters();
     } else {
         setTimeout(initSpillFilterCount, 50);
