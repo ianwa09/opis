@@ -698,6 +698,11 @@
         });
 
         function geo_json_74a8ff648bc5b9190beaecc887f54037_add (data) {
+            data.features.forEach(function (feature) {
+                feature.properties = feature.properties || {};
+                feature.properties.DATA_SOURCE =
+                    "PHMSA Hazardous Liquid Incident Reports (phmsa.dot.gov)";
+            });
             // Cache the full, unfiltered dataset so the spill filter panel
             // (app.js) can rebuild this layer from a subset without needing
             // to re-fetch or duplicate the ~5,800-feature dataset.
@@ -722,8 +727,8 @@
             return feature;
         }
     }
-    let fields = ["LOCAL_DATETIME", "COMMODITY_RELEASED_TYPE", "UNINTENTIONAL_RELEASE_BBLS", "CAUSE"];
-    let aliases = ["Date:", "Commodity:", "Volume (Bbls):", "Cause:"];
+    let fields = ["LOCAL_DATETIME", "COMMODITY_RELEASED_TYPE", "UNINTENTIONAL_RELEASE_BBLS", "CAUSE", "DATA_SOURCE"];
+    let aliases = ["Date:", "Commodity:", "Volume (Bbls):", "Cause:", "Source:"];
     let table = '<table>' +
         String(
         fields.map(
