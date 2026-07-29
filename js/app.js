@@ -520,11 +520,13 @@ function applySpillFilters() {
     }
     var filtered = window.allSpillFeatures.filter(featureMatchesFilters);
 
+    prepareCoincidentSpills(filtered);
     geo_json_74a8ff648bc5b9190beaecc887f54037.clearLayers();
     geo_json_74a8ff648bc5b9190beaecc887f54037.addData({
         type: 'FeatureCollection',
         features: filtered
     });
+    positionCoincidentSpills();
 
     var sevCheckbox = document.getElementById('severity-gradient-checkbox');
     toggleSpillSeverity(!!(sevCheckbox && sevCheckbox.checked));

@@ -697,6 +697,60 @@
                 {
 }
             );
+
+        // Group incidents with identical reported coordinates. Their GeoJSON
+        // geometry stays unchanged; only rendered marker positions are offset.
+        function prepareCoincidentSpills(features) {
+            var groups = {};
+
+            (features || []).forEach(function (feature) {
+                var coords = feature.geometry && feature.geometry.coordinates;
+                if (!coords || coords.length !== 2) return;
+                var key = coords[0] + "|" + coords[1];
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(feature);
+            });
+
+            Object.keys(groups).forEach(function (key) {
+                groups[key].forEach(function (feature, index, group) {
+                    feature.properties = feature.properties || {};
+                    feature.properties.COINCIDENT_COUNT = group.length;
+                    feature.properties.COINCIDENT_INDEX = index;
+                });
+            });
+        }
+
+        function coincidentSpillLatLng(feature, originalLatLng) {
+            var props = feature.properties || {};
+            var count = props.COINCIDENT_COUNT || 1;
+            if (count < 2) return originalLatLng;
+
+            var index = props.COINCIDENT_INDEX || 0;
+            var ringCapacity = 8;
+            var ring = Math.floor(index / ringCapacity);
+            var ringStart = ring * ringCapacity;
+            var ringCount = Math.min(ringCapacity, count - ringStart);
+            var ringIndex = index - ringStart;
+            var radius = 14 + (ring * 14);
+            var angle = ((Math.PI * 2) / ringCount) * ringIndex - (Math.PI / 2);
+            var zoom = map_10b250abf3b9fb60cf6682f90e22c04c.getZoom();
+            var point = map_10b250abf3b9fb60cf6682f90e22c04c.project(originalLatLng, zoom);
+
+            point.x += Math.cos(angle) * radius;
+            point.y += Math.sin(angle) * radius;
+            return map_10b250abf3b9fb60cf6682f90e22c04c.unproject(point, zoom);
+        }
+
+        function positionCoincidentSpills() {
+            if (typeof geo_json_74a8ff648bc5b9190beaecc887f54037 === "undefined") return;
+            geo_json_74a8ff648bc5b9190beaecc887f54037.eachLayer(function (layer) {
+                var feature = layer.feature;
+                var coords = feature && feature.geometry && feature.geometry.coordinates;
+                if (!coords || coords.length !== 2 || typeof layer.setLatLng !== "function") return;
+                var original = L.latLng(coords[1], coords[0]);
+                layer.setLatLng(coincidentSpillLatLng(feature, original));
+            });
+        }
         
     
         function geo_json_74a8ff648bc5b9190beaecc887f54037_pointToLayer(feature, latlng) {
@@ -717,7 +771,7 @@
   "radius": 4,
 };
             
-            return new L.CircleMarker(latlng, opts)
+            return new L.CircleMarker(coincidentSpillLatLng(feature, latlng), opts)
         }
 
         function geo_json_74a8ff648bc5b9190beaecc887f54037_onEachFeature(feature, layer) {
@@ -738,6 +792,7 @@
                 data,
                 "PHMSA Hazardous Liquid Incident Reports (phmsa.dot.gov)"
             );
+            prepareCoincidentSpills(data.features);
             // Cache the full, unfiltered dataset so the spill filter panel
             // (app.js) can rebuild this layer from a subset without needing
             // to re-fetch or duplicate the ~5,800-feature dataset.
@@ -764,6 +819,14 @@
     }
     let fields = ["LOCAL_DATETIME", "COMMODITY_RELEASED_TYPE", "UNINTENTIONAL_RELEASE_BBLS", "CAUSE", "DATA_SOURCE"];
     let aliases = ["Date:", "Commodity:", "Volume (Bbls):", "Cause:", "Source:"];
+    if ((layer.feature.properties.COINCIDENT_COUNT || 1) > 1) {
+        fields.push("COINCIDENT_DISPLAY");
+        aliases.push("Shared Location:");
+        layer.feature.properties.COINCIDENT_DISPLAY =
+            "Incident " + (layer.feature.properties.COINCIDENT_INDEX + 1) +
+            " of " + layer.feature.properties.COINCIDENT_COUNT +
+            "; marker offset for visibility";
+    }
     let table = '<table>' +
         String(
         fields.map(
@@ -785,6 +848,8 @@
                      
     
             geo_json_74a8ff648bc5b9190beaecc887f54037.addTo(feature_group_1d77eab727291666943a06c2652de70b);
+
+            map_10b250abf3b9fb60cf6682f90e22c04c.on("zoomend", positionCoincidentSpills);
         
 
             // tile error suppression
