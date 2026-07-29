@@ -789,6 +789,379 @@ document.getElementById('spill-timelapse-range').addEventListener('input', funct
     renderSpillPlaybackDate(date);
 });
 
+function getFilteredSpillFeaturesForExport() {
+    var features = window.allSpillFeatures.filter(featureMatchesFilters);
+    if (spillPlayback.currentDate) {
+        features = features.filter(function (feature) {
+            var date = parseSpillDate(feature.properties.LOCAL_DATETIME);
+            return date && date <= spillPlayback.currentDate;
+        });
+    }
+    return features;
+}
+
+function cleanSpillFeatureForExport(feature) {
+    var properties = Object.assign({}, feature.properties || {});
+    if (properties._state) properties.STATE = properties._state;
+    delete properties._state;
+    delete properties.COINCIDENT_COUNT;
+    delete properties.COINCIDENT_INDEX;
+    delete properties.COINCIDENT_DISPLAY;
+    delete properties.style;
+
+    return {
+        type: 'Feature',
+        geometry: JSON.parse(JSON.stringify(feature.geometry)),
+        properties: properties
+    };
+}
+
+function downloadOpisFile(filename, content, mimeType) {
+    var blob = new Blob([content], { type: mimeType });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+
+function csvCell(value) {
+    var text = value === null || value === undefined ? '' : String(value);
+    return '"' + text.replace(/"/g, '""') + '"';
+}
+
+function exportFilteredSpillsCsv() {
+    var rows = [[
+        'report_number', 'date', 'commodity', 'release_bbls', 'cause',
+        'state', 'latitude', 'longitude', 'source'
+    ]];
+
+    getFilteredSpillFeaturesForExport().forEach(function (feature) {
+        var props = feature.properties || {};
+        var coords = feature.geometry.coordinates;
+        rows.push([
+            props.REPORT_NUMBER,
+            props.LOCAL_DATETIME,
+            props.COMMODITY_RELEASED_TYPE,
+            props.UNINTENTIONAL_RELEASE_BBLS,
+            props.CAUSE,
+            props._state || '',
+            coords[1],
+            coords[0],
+            props.DATA_SOURCE
+        ]);
+    });
+
+    downloadOpisFile(
+        'opis-filtered-spills.csv',
+        rows.map(function (row) { return row.map(csvCell).join(','); }).join('\n'),
+        'text/csv;charset=utf-8'
+    );
+    showToast('CSV downloaded');
+}
+
+function exportFilteredSpillsGeoJson() {
+    var collection = {
+        type: 'FeatureCollection',
+        features: getFilteredSpillFeaturesForExport().map(cleanSpillFeatureForExport)
+    };
+    downloadOpisFile(
+        'opis-filtered-spills.geojson',
+        JSON.stringify(collection, null, 2),
+        'application/geo+json;charset=utf-8'
+    );
+    showToast('GeoJSON downloaded');
+}
+
+window.exportOpisBoundary = function (boundaryId, format) {
+    var analysis = typeof window.recalculateOpisBoundaryAnalysis === 'function'
+        ? window.recalculateOpisBoundaryAnalysis(boundaryId)
+        : (window.opisBoundaryAnalyses && window.opisBoundaryAnalyses[boundaryId]);
+    if (!analysis) {
+        showToast('Boundary results are not available');
+        return;
+    }
+
+    if (format === 'json') {
+        downloadOpisFile(
+            'opis-boundary-analysis.json',
+            JSON.stringify(analysis, null, 2),
+            'application/json;charset=utf-8'
+        );
+        showToast('Boundary JSON downloaded');
+        return;
+    }
+
+    var rows = [
+        ['metric', 'value'],
+        ['generated_at', analysis.generatedAt],
+        ['pipeline_crossings', analysis.infrastructure.pipelineCrossings],
+        ['estimated_pipeline_miles', analysis.infrastructure.estimatedPipelineMiles],
+        ['active_operator_count', analysis.infrastructure.activeOperatorCount],
+        ['active_operators', analysis.infrastructure.activeOperators.join('; ')],
+        ['total_incidents', analysis.incidents.totalIncidents],
+        ['total_barrels_spilled', analysis.incidents.totalBarrelsSpilled],
+        ['average_spill_barrels', analysis.incidents.averageSpillBarrels],
+        ['primary_cause', analysis.incidents.primaryCause]
+    ];
+    Object.keys(analysis.infrastructure.crossingsByType).forEach(function (type) {
+        rows.push(['pipeline_crossings_' + type.toLowerCase().replace(/\s+/g, '_'), analysis.infrastructure.crossingsByType[type]]);
+    });
+    Object.keys(analysis.incidents.incidentsByCause).forEach(function (cause) {
+        rows.push(['incidents_' + cause.toLowerCase().replace(/\s+/g, '_'), analysis.incidents.incidentsByCause[cause]]);
+    });
+
+    downloadOpisFile(
+        'opis-boundary-analysis.csv',
+        rows.map(function (row) { return row.map(csvCell).join(','); }).join('\n'),
+        'text/csv;charset=utf-8'
+    );
+    showToast('Boundary CSV downloaded');
+};
+
+function localDateString(date) {
+    if (!date) return '';
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return year + '-' + month + '-' + day;
+}
+
+function buildOpisShareUrl() {
+    var center = map_10b250abf3b9fb60cf6682f90e22c04c.getCenter();
+    var params = new URLSearchParams();
+    params.set('lat', center.lat.toFixed(5));
+    params.set('lng', center.lng.toFixed(5));
+    params.set('zoom', map_10b250abf3b9fb60cf6682f90e22c04c.getZoom());
+    params.set('basemap', activeBasemap);
+    var activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) params.set('tab', activeTab.dataset.tab);
+    if (activePipeline) params.set('layer', activePipeline);
+    if (spillsOn) params.set('spills', '1');
+    if (document.getElementById('severity-gradient-checkbox').checked) params.set('severity', '1');
+    if (spillFilters.dateStart) params.set('start', spillFilters.dateStart);
+    if (spillFilters.dateEnd) params.set('end', spillFilters.dateEnd);
+    if (spillFilters.commodity !== 'ALL') params.set('commodity', spillFilters.commodity);
+    if (spillFilters.cause !== 'ALL') params.set('cause', spillFilters.cause);
+    if (spillFilters.state !== 'ALL') params.set('state', spillFilters.state);
+    if (spillFilters.minBbls) params.set('min', spillFilters.minBbls);
+    if (spillPlayback.currentDate) params.set('timeline', localDateString(spillPlayback.currentDate));
+    return location.origin + location.pathname + '?' + params.toString();
+}
+
+function copyTextFallback(text) {
+    var input = document.createElement('textarea');
+    input.value = text;
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    input.remove();
+}
+
+function copyOpisShareLink() {
+    var url = buildOpisShareUrl();
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url)
+            .then(function () { showToast('Share link copied'); })
+            .catch(function () {
+                copyTextFallback(url);
+                showToast('Share link copied');
+            });
+    } else {
+        copyTextFallback(url);
+        showToast('Share link copied');
+    }
+}
+
+function escapeReportHtml(value) {
+    return String(value === null || value === undefined ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function filterSummaryText() {
+    var parts = [];
+    if (spillFilters.dateStart || spillFilters.dateEnd) {
+        parts.push((spillFilters.dateStart || 'Dataset start') + ' to ' + (spillFilters.dateEnd || 'Dataset end'));
+    } else {
+        parts.push('January 1, 2010 to December 23, 2025');
+    }
+    if (spillFilters.commodity !== 'ALL') parts.push(spillFilters.commodity);
+    if (spillFilters.state !== 'ALL') parts.push('State: ' + spillFilters.state);
+    if (spillFilters.cause !== 'ALL') parts.push(spillFilters.cause);
+    if (spillFilters.minBbls) parts.push(spillFilters.minBbls + '+ bbls');
+    if (spillPlayback.currentDate) parts.push('Timeline through ' + localDateString(spillPlayback.currentDate));
+    return parts.join(' | ');
+}
+
+function printOpisSummary() {
+    var features = getFilteredSpillFeaturesForExport();
+    var totalVolume = features.reduce(function (sum, feature) {
+        return sum + (parseFloat(feature.properties.UNINTENTIONAL_RELEASE_BBLS) || 0);
+    }, 0);
+    var causes = {};
+    features.forEach(function (feature) {
+        var cause = feature.properties.CAUSE || 'Unknown';
+        causes[cause] = (causes[cause] || 0) + 1;
+    });
+    var topCauses = Object.keys(causes)
+        .sort(function (a, b) { return causes[b] - causes[a]; })
+        .slice(0, 5);
+    var center = map_10b250abf3b9fb60cf6682f90e22c04c.getCenter();
+    var reportWindow = window.open('', '_blank');
+    if (!reportWindow) {
+        showToast('Allow pop-ups to print a summary');
+        return;
+    }
+    reportWindow.opener = null;
+    var causeRows = topCauses.length
+        ? topCauses.map(function (cause) {
+            return '<tr><td>' + escapeReportHtml(cause) + '</td><td>' + causes[cause].toLocaleString() + '</td></tr>';
+        }).join('')
+        : '<tr><td colspan="2">No incidents match the current filters.</td></tr>';
+
+    reportWindow.document.write(
+        '<!doctype html><html><head><meta charset="utf-8"><title>OPIS Map Summary</title>' +
+        '<style>' +
+        'body{font-family:Arial,sans-serif;color:#1e293b;margin:40px;line-height:1.45}' +
+        'header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1e3a5f;padding-bottom:14px}' +
+        'h1{font-size:22px;margin:0}h2{font-size:14px;color:#1e40af;margin:24px 0 8px;text-transform:uppercase;letter-spacing:.6px}' +
+        '.meta{font-size:12px;color:#64748b}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}' +
+        '.card{border:1px solid #e2e8f0;border-radius:8px;padding:14px}.value{font-size:22px;font-weight:700}' +
+        'table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px;border-bottom:1px solid #e2e8f0}' +
+        '.actions{margin-top:24px}.actions button{padding:9px 16px;font-weight:700}@media print{.actions{display:none}body{margin:20px}}' +
+        '</style></head><body>' +
+        '<header><div><h1>OPIS Map Summary</h1><div class="meta">Oil Pipeline Impact Simulator</div></div>' +
+        '<div class="meta">Generated ' + escapeReportHtml(new Date().toLocaleString()) + '</div></header>' +
+        '<h2>Current View</h2><table>' +
+        '<tr><th>Map center</th><td>' + center.lat.toFixed(5) + ', ' + center.lng.toFixed(5) + '</td></tr>' +
+        '<tr><th>Zoom</th><td>' + map_10b250abf3b9fb60cf6682f90e22c04c.getZoom() + '</td></tr>' +
+        '<tr><th>Basemap</th><td>' + escapeReportHtml(activeBasemap) + '</td></tr>' +
+        '<tr><th>Pipeline layer</th><td>' + escapeReportHtml(activePipeline || 'None selected') + '</td></tr>' +
+        '<tr><th>Spill filters</th><td>' + escapeReportHtml(filterSummaryText()) + '</td></tr></table>' +
+        '<h2>Filtered Incident Summary</h2><div class="cards">' +
+        '<div class="card"><div class="meta">Incidents</div><div class="value">' + features.length.toLocaleString() + '</div></div>' +
+        '<div class="card"><div class="meta">Total volume</div><div class="value">' + totalVolume.toLocaleString(undefined, {maximumFractionDigits: 1}) + '</div><div class="meta">barrels</div></div>' +
+        '<div class="card"><div class="meta">Average volume</div><div class="value">' + (features.length ? (totalVolume / features.length).toFixed(1) : '0') + '</div><div class="meta">barrels</div></div>' +
+        '</div><h2>Leading Causes</h2><table><tr><th>Cause</th><th>Incidents</th></tr>' + causeRows + '</table>' +
+        '<h2>Source</h2><p class="meta">PHMSA Hazardous Liquid Incident Reports. Pipeline sources are documented in the OPIS Data Methodology and Appendix.</p>' +
+        '<div class="actions"><button onclick="window.print()">Print or Save as PDF</button></div>' +
+        '</body></html>'
+    );
+    reportWindow.document.close();
+}
+
+document.getElementById('export-spills-csv').addEventListener('click', exportFilteredSpillsCsv);
+document.getElementById('export-spills-geojson').addEventListener('click', exportFilteredSpillsGeoJson);
+document.getElementById('copy-share-link').addEventListener('click', copyOpisShareLink);
+document.getElementById('print-map-summary').addEventListener('click', printOpisSummary);
+
+var opisShareStateApplied = false;
+
+function applyOpisShareState() {
+    if (opisShareStateApplied) return true;
+    var params = new URLSearchParams(location.search);
+    var opisKeys = [
+        'lat', 'lng', 'zoom', 'basemap', 'tab', 'layer', 'spills', 'severity',
+        'start', 'end', 'commodity', 'cause', 'state', 'min', 'timeline'
+    ];
+    var hasOpisState = opisKeys.some(function (key) { return params.has(key); });
+    if (!hasOpisState) {
+        opisShareStateApplied = true;
+        return true;
+    }
+
+    var sharedState = params.get('state');
+    if (
+        sharedState &&
+        !Array.from(document.getElementById('filter-state').options).some(function (option) {
+            return option.value === sharedState;
+        })
+    ) {
+        return false;
+    }
+
+    var lat = parseFloat(params.get('lat'));
+    var lng = parseFloat(params.get('lng'));
+    var zoom = parseInt(params.get('zoom'), 10);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Number.isFinite(zoom)) {
+        map_10b250abf3b9fb60cf6682f90e22c04c.setView([lat, lng], zoom);
+    }
+
+    var basemap = params.get('basemap');
+    if (basemap && basemaps[basemap] && basemap !== activeBasemap) {
+        map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(basemaps[activeBasemap]);
+        map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(basemaps[basemap]);
+        activeBasemap = basemap;
+        document.querySelectorAll('.bm-btn').forEach(function (button) {
+            button.classList.toggle('active', button.dataset.bm === basemap);
+        });
+    }
+
+    var sharedTab = params.get('tab');
+    if (sharedTab) {
+        var tabButton = document.querySelector('.tab-btn[data-tab="' + sharedTab + '"]');
+        if (tabButton) tabButton.click();
+    }
+
+    spillFilters.dateStart = params.get('start') || null;
+    spillFilters.dateEnd = params.get('end') || null;
+    spillFilters.commodity = params.get('commodity') || 'ALL';
+    spillFilters.cause = params.get('cause') || 'ALL';
+    spillFilters.state = sharedState || 'ALL';
+    spillFilters.minBbls = parseFloat(params.get('min')) || 0;
+    document.getElementById('filter-date-start').value = spillFilters.dateStart || '';
+    document.getElementById('filter-date-end').value = spillFilters.dateEnd || '';
+    document.getElementById('filter-commodity').value = spillFilters.commodity;
+    document.getElementById('filter-cause').value = spillFilters.cause;
+    document.getElementById('filter-state').value = spillFilters.state;
+    document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (pill) {
+        pill.classList.toggle(
+            'active',
+            (parseFloat(pill.dataset.minBbls) || 0) === spillFilters.minBbls
+        );
+    });
+
+    resetSpillTimelapse();
+    applySpillFilters();
+
+    var selectedLayer = params.get('layer');
+    if (selectedLayer && pipelineLayers[selectedLayer]) {
+        var layerItem = Array.from(document.querySelectorAll('#pipeline-list li')).find(function (item) {
+            return item.dataset.layer === selectedLayer;
+        });
+        if (layerItem) layerItem.click();
+    }
+
+    if (params.get('spills') === '1' || params.has('timeline')) setSpills(true);
+
+    var severity = params.get('severity') === '1';
+    document.getElementById('severity-gradient-checkbox').checked = severity;
+    toggleSpillSeverity(severity);
+
+    var timeline = parseDateInput(params.get('timeline'));
+    if (timeline && spillPlayback.start && spillPlayback.end) {
+        if (timeline < spillPlayback.start) timeline = new Date(spillPlayback.start);
+        if (timeline > spillPlayback.end) timeline = new Date(spillPlayback.end);
+        buildSpillPlaybackFeatures();
+        var range = document.getElementById('spill-timelapse-range');
+        range.value = Math.round((timeline - spillPlayback.start) / 86400000);
+        renderSpillPlaybackDate(timeline);
+    }
+
+    opisShareStateApplied = true;
+    showToast('Shared map view restored');
+    return true;
+}
+
 // Apply filters (no-op if all defaults) once spill data has loaded, so the
 // "Showing X of Y" count is correct even before the user touches a filter.
 // allSpillFeatures is set synchronously by pipelines.js before app.js runs,
@@ -797,6 +1170,7 @@ document.getElementById('spill-timelapse-range').addEventListener('input', funct
     if (window.allSpillFeatures) {
         resetSpillTimelapse();
         applySpillFilters();
+        applyOpisShareState();
     } else {
         setTimeout(initSpillFilterCount, 50);
     }
@@ -1076,7 +1450,7 @@ function populateStateFilterOptions() {
 
                 precomputeSpillStates(statesGeoJSON);
                 populateStateFilterOptions();
-                applySpillFilters();
+                if (!applyOpisShareState()) applySpillFilters();
             });
     } else {
         setTimeout(initSpillFilterCount, 50);

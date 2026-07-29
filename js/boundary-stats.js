@@ -127,9 +127,13 @@ window.addEventListener('load', function() {
         // 4b. Scan INCIDENTS layer exclusively for points
         const spillLayerObj = window[incidentLayerId];
         if (spillLayerObj && typeof spillLayerObj.toGeoJSON === 'function') {
-            const spillGeoJSON = spillLayerObj.toGeoJSON();
-            if (spillGeoJSON && spillGeoJSON.features) {
-                spillGeoJSON.features.forEach(function(feature) {
+            // Use the original embedded coordinates when available. Rendered
+            // markers may be offset slightly to separate coincident incidents.
+            const spillFeatures = typeof window.getFilteredSpillFeaturesForExport === 'function'
+                ? window.getFilteredSpillFeaturesForExport()
+                : (spillLayerObj.toGeoJSON().features || []);
+            if (spillFeatures) {
+                spillFeatures.forEach(function(feature) {
                     if (feature.geometry && feature.geometry.type === 'Point') {
                         if (turf.booleanPointInPolygon(feature, drawnPolygon)) {
                             totalSpillsInZone++;
@@ -162,6 +166,26 @@ window.addEventListener('load', function() {
         if (topCauseCount > 1) topCause = "Multiple";
 
         const maxCrossings = Math.max(...Object.values(crossingBreakdown), 1);
+        const boundaryExportId = L.stamp(layer);
+        window.opisBoundaryAnalyses = window.opisBoundaryAnalyses || {};
+        window.opisBoundaryAnalyses[boundaryExportId] = {
+            generatedAt: new Date().toISOString(),
+            boundary: drawnPolygon,
+            infrastructure: {
+                pipelineCrossings: intersectingPipelinesCount,
+                estimatedPipelineMiles: totalLengthMiles,
+                activeOperatorCount: uniqueOperators.size,
+                activeOperators: Array.from(uniqueOperators).sort(),
+                crossingsByType: Object.assign({}, crossingBreakdown)
+            },
+            incidents: {
+                totalIncidents: totalSpillsInZone,
+                totalBarrelsSpilled: totalBarrelsSpilled,
+                averageSpillBarrels: avgSpillVolume,
+                primaryCause: topCause,
+                incidentsByCause: Object.assign({}, spillCauses)
+            }
+        };
 
         // 6. Build the readout popup card layout
         const popupContent = `
@@ -206,6 +230,14 @@ window.addEventListener('load', function() {
                             <span style="font-size: 11px; font-weight: 700; background-color: #fee2e2; padding: 2px 6px; border-radius: 4px; color: #991b1b; text-transform: uppercase;">${topCause}</span>
                         </div>
                     </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;">
+                    <button type="button" onclick="window.exportOpisBoundary(${boundaryExportId}, 'csv')" style="padding: 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; color: #475569; font-size: 11px; font-weight: 600; cursor: pointer;">
+                        <i class="bi bi-filetype-csv"></i> Export CSV
+                    </button>
+                    <button type="button" onclick="window.exportOpisBoundary(${boundaryExportId}, 'json')" style="padding: 7px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; color: #475569; font-size: 11px; font-weight: 600; cursor: pointer;">
+                        <i class="bi bi-braces"></i> Export JSON
+                    </button>
                 </div>
             </div>
         `;
@@ -306,6 +338,13 @@ window.addEventListener('load', function() {
             if (causeTooltip) causeTooltip.style.display = 'none';
         });
     }
+
+    window.recalculateOpisBoundaryAnalysis = function(layerId) {
+        const boundaryLayer = mapInstance._layers[layerId];
+        if (!boundaryLayer || typeof boundaryLayer.toGeoJSON !== 'function') return null;
+        runBoundaryAnalysis(boundaryLayer);
+        return window.opisBoundaryAnalyses && window.opisBoundaryAnalyses[layerId];
+    };
 
     mapInstance.on('pm:create', function(e) {
         const layer = e.layer;
