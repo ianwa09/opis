@@ -32,7 +32,7 @@ var tutorialSteps = [
     {
         icon: 'bi-file-earmark-text',
         title: 'Data Sources & Methodology',
-        body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the Spill History tab to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>Contact us at <a href="mailto:iwang@imsa.edu">iwang@imsa.edu</a> and <a href="mailto:olee@imsa.edu">olee@imsa.edu</a> with any questions or suggestions.<br><br>You\'re all set. Explore the map!'
+        body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the navigation bar to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>Contact us at <a href="mailto:iwang@imsa.edu">iwang@imsa.edu</a> and <a href="mailto:olee@imsa.edu">olee@imsa.edu</a> with any questions or suggestions.<br><br>You\'re all set. Explore the map!'
     }
 ];
 var tutStep = 0;
@@ -247,7 +247,7 @@ document.body.insertAdjacentHTML('beforeend', `
                 <li>Submarine Pipelines (ICPSR 240657 &amp; ICPSR 240796)</li>
                 <li>Natural Gas Pipelines (ICPSR 239743)</li>
                 <li>Hydrocarbon Gas Liquid / Petroleum Product Pipelines (ICPSR 239260)</li>
-                <li>Intermodal Freight Corridors (ICPSR 240798)</li>
+                <li>Petroleum terminal facilities with rail, truck, and water-access attributes (ICPSR 240798)</li>
                 <li>POL (Petroleum, Oil, and Lubricants) Terminals (ICPSR 239798)</li>
             </ul>
         </li>
@@ -257,29 +257,29 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <div class="meth-section">
     <div class="meth-section-title">2. Spill Incident Data</div>
-    <p><strong>Source:</strong> PHMSA Hazardous Liquid Incident Reports, available through the PHMSA online data portal (phmsa.dot.gov). Data covers reported incidents from 2010 through the most recent published year.</p>
+    <p><strong>Source:</strong> PHMSA Hazardous Liquid Incident Reports, available through the PHMSA online data portal (phmsa.dot.gov). The embedded map dataset contains 5,812 incidents dated January 1, 2010 through December 23, 2025.</p>
     <ul>
-        <li>Only incidents with confirmed geographic coordinates are shown on the map.</li>
+        <li>Every displayed incident has a numeric geographic coordinate pair; the application does not independently validate the reported location.</li>
         <li>Volume figures represent unintentional release in barrels (bbls) as reported by the operator.</li>
-        <li>Near-misses and incidents without confirmed spill volumes are excluded.</li>
-        <li>Dollar figures are inflation-adjusted to 2024 USD using the Bureau of Labor Statistics CPI for Construction and Maintenance cost categories.</li>
+        <li>The embedded data includes 34 incidents with a reported release volume of zero barrels. Records with missing coordinates or other missing source fields cannot be assessed from the embedded map data alone.</li>
+        <li>The spill-history layer contains no dollar fields. Dollar adjustment applies to the separate cost-model training data described below, not to the displayed incident markers.</li>
     </ul>
     </div>
 
     <div class="meth-section">
     <div class="meth-section-title">3. Spill Cost Simulation Model</div>
-    <p><strong>Method:</strong> Ordinary Least Squares (OLS) regression trained on PHMSA hazardous liquid incident records from 2015 to 2024 (roughly 2,400 incidents). The dependent variable is log-transformed total incident cost, adjusted to 2024 dollars.</p>
-    <p><strong>Equipment age:</strong> All simulations use 50 years as a fixed input. This reflects the median age of regulated pipeline infrastructure in the PHMSA dataset and keeps cost estimates comparable across different pipeline segments.</p>
+    <p><strong>Method:</strong> The deployed application identifies its embedded coefficients as coming from an Ordinary Least Squares (OLS) regression on PHMSA crude oil incident records from 2015 to 2024. The dependent variable is documented as <code>log1p</code>-transformed total incident cost, adjusted to 2024 dollars.</p>
+    <p><strong>Equipment age:</strong> All simulations use 50 years as a fixed input to keep estimates comparable across pipeline segments. The application does not read or estimate the actual installation age of the selected pipeline.</p>
     <ul>
-        <li>Adjusted R-squared is approximately 0.61, meaning the model accounts for about 61% of the variation in log-scale incident costs.</li>
-        <li>The 95% confidence interval reflects uncertainty in the mean cost estimate, not the range of any individual incident.</li>
-        <li>Results are best understood as the average expected cost for incidents with similar characteristics. Real-world costs can vary significantly based on site conditions.</li>
+        <li>The application records an adjusted R-squared of approximately 0.61; the underlying regression output is not bundled with the deployed repository.</li>
+        <li>The displayed interval is an approximate log-scale interval calculated with the same fixed standard error (0.078) for every scenario. It is not a prediction range for an individual incident.</li>
+        <li>The result is a back-transformed log-scale model estimate. Real-world costs can vary significantly, and the deployed calculation does not apply a retransformation or smearing correction.</li>
     </ul>
     </div>
 
     <div class="meth-section">
     <div class="meth-section-title">4. Cost Breakdown Categories</div>
-    <p>Cost shares come from PHMSA cost category sub-totals across all incidents in the 2015-2024 training dataset:</p>
+    <p>The deployed tool allocates each modeled total using the following fixed shares, documented in the application as derived from PHMSA cost category sub-totals:</p>
     <table class="meth-table">
         <tr><th>Category</th><th>Share</th><th>PHMSA Field</th></tr>
         <tr><td>Operator Paid</td><td>38%</td><td>OPERATOR_PAID_COST</td></tr>
@@ -292,7 +292,7 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <div class="meth-section">
     <div class="meth-section-title">5. Geographic State Detection</div>
-    <p>Pipeline click coordinates are matched to a state using bounding-box logic covering all 50 states. Segments near state borders may occasionally be assigned to the wrong state. State fixed effects in the regression are included to capture differences in regulatory requirements, labor costs, and environmental remediation standards across jurisdictions.</p>
+    <p>Pipeline click coordinates are matched to a state using bounding-box logic covering all 50 states. Because state boxes overlap and the first match is used, segments near state borders may be assigned to the wrong state. The deployed model then applies a hard-coded state adjustment. Spill-history filtering uses <code>us-atlas</code> state polygons with the same bounding boxes as a fallback.</p>
     </div>
 
     <div class="meth-section">
@@ -302,7 +302,7 @@ document.body.insertAdjacentHTML('beforeend', `
     <table class="meth-table">
         <tr><th>Variable</th><th>Coefficient</th><th>Interpretation</th></tr>
         <tr><td>Intercept</td><td>9.42</td><td>Baseline cost approx. $12,300</td></tr>
-        <tr><td>Equipment Age (per yr)</td><td>0.0118</td><td>Fixed at 50 yrs (adds about 79% vs. new)</td></tr>
+        <tr><td>Equipment Age (per yr)</td><td>0.0118</td><td>Fixed at 50 yrs (adds about 80% vs. new)</td></tr>
         <tr><td>Log Release Volume</td><td>0.847</td><td>Primary cost driver</td></tr>
         <tr><td>High Population Area</td><td>0.542</td><td>Adds roughly 72% to cost</td></tr>
         <tr><td>Water Contamination</td><td>0.793</td><td>Adds roughly 121% to cost</td></tr>
@@ -311,7 +311,7 @@ document.body.insertAdjacentHTML('beforeend', `
         <tr><td>Above Ground Location</td><td>-0.287</td><td>About 25% cheaper than below ground</td></tr>
         <tr><td>Underwater Location</td><td>0.445</td><td>Adds roughly 56% to cost</td></tr>
         <tr><td>Interstate Pipeline</td><td>0.148</td><td>Adds roughly 16% for regulatory burden</td></tr>
-        <tr><td>Std. Error (mean CI)</td><td>0.078</td><td>Used to calculate the 95% confidence interval</td></tr>
+        <tr><td>Fixed log-scale interval error</td><td>0.078</td><td>Applied to every scenario's approximate interval</td></tr>
     </table>
     </div>
 
@@ -322,7 +322,7 @@ document.body.insertAdjacentHTML('beforeend', `
         <li>PHMSA Incident Data: phmsa.dot.gov/data-and-statistics/pipeline/pipeline-incident-flagged-files</li>
         <li>EIA Pipeline Data: hub.arcgis.com/datasets/bb2aee97117d403ea63bcfe6be4a12c8_0</li>
         <li>CPI Inflation Adjustment: bls.gov/cpi (Series CUUR0000SA0)</li>
-        <li>State Bounding Boxes: U.S. Census Bureau TIGER/Line boundaries</li>
+        <li>Spill state polygons: us-atlas version 3; pipeline and fallback state detection: bounding boxes embedded in the application</li>
     </ul>
     </div>
 
@@ -332,9 +332,16 @@ document.body.insertAdjacentHTML('beforeend', `
     <ul>
         <li>This tool is for informational and planning purposes only. It is not engineering, legal, or regulatory advice.</li>
         <li>Spill cost estimates carry real uncertainty. Individual incidents can cost significantly more or less than what the model predicts.</li>
+        <li>The displayed interval uses a fixed standard error and should not be interpreted as a scenario-specific prediction interval.</li>
         <li>Pipeline location data reflects publicly available federal filings and may not capture recent route changes, abandonments, or new construction.</li>
         <li>The 50-year equipment age input may not match the actual installation date of any specific pipeline segment.</li>
     </ul>
+    </div>
+
+    <div class="meth-section">
+    <span class="appendix-label">Appendix D</span>
+    <div class="meth-section-title" style="margin-top:6px">Acknowledgements</div>
+    <p>Thank you to Mrs. Laura Young, Mrs. Cathy Clarkin, and the BLAST Team at Accelerate Climate Solutions for their support of this project.</p>
     </div>
 
 </div>
@@ -461,6 +468,7 @@ var spillFilters = {
     dateEnd: null,      // 'YYYY-MM-DD' or null
     commodity: 'ALL',
     cause: 'ALL',
+    state: 'ALL',
     minBbls: 0
 };
 
@@ -497,6 +505,10 @@ function featureMatchesFilters(feature) {
     if (spillFilters.minBbls > 0) {
         var bbls = parseFloat(props.UNINTENTIONAL_RELEASE_BBLS || 0);
         if (isNaN(bbls) || bbls < spillFilters.minBbls) return false;
+    }
+
+    if (spillFilters.state !== 'ALL') {
+        if (feature.properties._state !== spillFilters.state) return false;
     }
 
     return true;
@@ -550,6 +562,12 @@ document.getElementById('filter-cause').addEventListener('change', function () {
     applySpillFilters();
 });
 
+// State dropdown
+document.getElementById('filter-state').addEventListener('change', function () {
+    spillFilters.state = this.value;
+    applySpillFilters();
+});
+
 // Minimum volume pills (single-select)
 document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (pill) {
     pill.addEventListener('click', function () {
@@ -564,11 +582,12 @@ document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function 
 
 // Reset
 document.getElementById('spill-filters-reset').addEventListener('click', function () {
-    spillFilters = { dateStart: null, dateEnd: null, commodity: 'ALL', cause: 'ALL', minBbls: 0 };
+    spillFilters = { dateStart: null, dateEnd: null, commodity: 'ALL', cause: 'ALL', state: 'ALL', minBbls: 0 };
     document.getElementById('filter-date-start').value = '';
     document.getElementById('filter-date-end').value = '';
     document.getElementById('filter-commodity').value = 'ALL';
     document.getElementById('filter-cause').value = 'ALL';
+    document.getElementById('filter-state').value = 'ALL';
     document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p, i) {
         p.classList.toggle('active', i === 0);
     });
@@ -662,9 +681,9 @@ document.body.insertAdjacentHTML('beforeend', `
     <!-- Results -->
     <div id="sim-results">
     <div class="result-main">
-        <div class="result-label">Most Likely Average Cost (2024 USD)</div>
+        <div class="result-label">Estimated Cost (2024 USD)</div>
         <div class="result-cost" id="res-cost">—</div>
-        <div class="result-ci" id="res-ci">95% Confidence Interval: <strong>—</strong></div>
+        <div class="result-ci" id="res-ci">Approximate 95% Interval: <strong>—</strong></div>
     </div>
 
     <p class="breakdown-title">Estimated Cost Breakdown</p>
@@ -675,10 +694,11 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <p class="sim-disclaimer">
         This simulation uses an OLS regression model trained on 2015&ndash;2024 PHMSA
-        hazardous liquid incident reports, inflation-adjusted to 2024 USD. Results
-        represent the <em>average expected cost</em> for incidents with similar
-        characteristics: not a guarantee. The 95% confidence interval reflects
-        uncertainty in the mean estimate, not individual incident variability.
+        crude oil incident reports, inflation-adjusted to 2024 USD. Results
+        provide a back-transformed log-scale estimate for incidents with similar
+        characteristics: not a guarantee. The approximate interval applies the
+        same fixed log-scale standard error to every scenario and is not an
+        individual-incident prediction range.
     </p>
     </div>
 
@@ -704,7 +724,7 @@ var OLS = {
     interstate: 0.148,  // interstate regulatory burden
     intrastate: 0.045,  // intrastate (moderate)
     // gathering: 0 (reference category)
-    se_mean: 0.078,  // standard error for mean CI
+    se_mean: 0.078,  // fixed log-scale error used for the approximate interval
     // State fixed effects (relative to national mean = 0)
     states: {
         AL: -0.15, AK: 0.45, AZ: 0.10, AR: -0.20, CA: 0.55, CO: 0.20, CT: 0.35,
@@ -756,13 +776,116 @@ var STATE_BOXES = [
     { s: 'AK', n: 71.5, S: 54.0, w: -168.0, e: -130.0 }, { s: 'HI', n: 22.5, S: 18.0, w: -160.0, e: -154.0 }
 ];
 
+// Fallback state lookup for features that don't have a precomputed _state
+// (e.g. pipeline segments, which only get bounding-box detection, not the
+// turf/us-atlas polygon lookup used for spills). Simple bounding-box test;
+// boxes can overlap slightly near borders, so this returns the first match.
 function detectState(lat, lng) {
     for (var i = 0; i < STATE_BOXES.length; i++) {
         var b = STATE_BOXES[i];
-        if (lat >= b.S && lat <= b.n && lng >= b.w && lng <= b.e) return b.s;
+        if (lat <= b.n && lat >= b.S && lng >= b.w && lng <= b.e) {
+            return b.s;
+        }
     }
-    return 'TX';
+    return null;
 }
+
+function precomputeSpillStates(statesGeoJSON) {
+    window.allSpillFeatures.forEach(function(feature) {
+        var match = null;
+        var coords = feature.geometry && feature.geometry.coordinates;
+        try {
+            var pt = turf.point(coords);
+            match = statesGeoJSON.features.find(function(s) {
+                return turf.booleanPointInPolygon(pt, s);
+            });
+        } catch (e) {
+            // Non-point geometry or malformed coordinates - fall through to the
+            // bounding-box fallback below rather than aborting for every feature.
+        }
+
+        if (match) {
+            feature.properties._state = match.properties.postal;
+        } else if (coords && coords.length === 2) {
+            // The precise polygon test can miss coastal points that fall just
+            // outside the simplified state boundary (PHMSA-reported coordinates
+            // vs. TIGER/us-atlas coastline resolution don't always agree exactly
+            // - e.g. North Slope facilities sitting right at the shoreline).
+            // Fall back to a coarse bounding-box check instead of leaving these
+            // features unmatched to any state, which would silently exclude
+            // them from every state filter even though they're clearly onshore.
+            feature.properties._state = detectState(coords[1], coords[0]);
+        } else {
+            feature.properties._state = null;
+        }
+    });
+}
+
+// Builds the State filter <select> options from whatever state codes
+// actually showed up in the data, so it never falls out of sync with the dataset.
+function populateStateFilterOptions() {
+    var select = document.getElementById('filter-state');
+    if (!select) return;
+
+    var stateNames = {
+        AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+        CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+        HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+        KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+        MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+        MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire',
+        NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina',
+        ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania',
+        RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee',
+        TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington',
+        WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming'
+    };
+
+    var present = {};
+    window.allSpillFeatures.forEach(function (f) {
+        var st = f.properties && f.properties._state;
+        if (st) present[st] = true;
+    });
+
+    Object.keys(present).sort().forEach(function (code) {
+        var opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = stateNames[code] || code;
+        select.appendChild(opt);
+    });
+}
+
+(function initSpillFilterCount() {
+    if (window.allSpillFeatures) {
+        fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json')
+            .then(r => r.json())
+            .then(function(topology) {
+                // us-atlas ships as TopoJSON — convert to GeoJSON
+                var statesGeoJSON = topojson.feature(topology, topology.objects.states);
+
+                // us-atlas uses FIPS codes, not abbreviations — map them
+                var fipsToPostal = {
+                    '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT',
+                    '10':'DE','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN',
+                    '19':'IA','20':'KS','21':'KY','22':'LA','23':'ME','24':'MD','25':'MA',
+                    '26':'MI','27':'MN','28':'MS','29':'MO','30':'MT','31':'NE','32':'NV',
+                    '33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND','39':'OH',
+                    '40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD','47':'TN',
+                    '48':'TX','49':'UT','50':'VT','51':'VA','53':'WA','54':'WV','55':'WI',
+                    '56':'WY'
+                };
+                statesGeoJSON.features.forEach(function(f) {
+                    f.properties.postal = fipsToPostal[f.id] || null;
+                });
+
+                precomputeSpillStates(statesGeoJSON);
+                populateStateFilterOptions();
+                applySpillFilters();
+            });
+    } else {
+        setTimeout(initSpillFilterCount, 50);
+    }
+})();
 
 // Simulator state 
 var simState = null; // detected 2-letter state code
@@ -771,7 +894,7 @@ var simClickLatLng = null;
 // Open simulator
 function openSimulator(props, latlng) {
     simClickLatLng = latlng;
-    simState = detectState(latlng.lat, latlng.lng);
+    simState = props._state || detectState(latlng.lat, latlng.lng);
 
     document.getElementById('sim-pipename').textContent =
         (props.Pipename || props.pipename || 'Unknown');
@@ -845,7 +968,7 @@ document.getElementById('sim-run-btn').addEventListener('click', function () {
 
     document.getElementById('res-cost').textContent = fmt(predCost);
     document.getElementById('res-ci').innerHTML =
-        '95% Confidence Interval: <strong>' +
+        'Approximate 95% Interval: <strong>' +
         fmt(lowerMean) + ' &mdash; ' + fmt(upperMean) + '</strong>';
 
     // Cost breakdown bars

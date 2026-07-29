@@ -519,16 +519,18 @@ color: #1a2533;
 width: 580px;
 max-width: 96vw;
 max-height: 88vh;
-overflow-y: auto;
+overflow: hidden;
 position: relative;
+display: flex;
+flex-direction: column;
 }
 #meth-modal .meth-header {
 background: #1e3a5f;
 padding: 16px 18px 13px;
 border-bottom: none;
 border-radius: 12px 12px 0 0;
-position: sticky;
-top: 0;
+position: relative;
+flex: 0 0 auto;
 z-index: 1;
 }
 #meth-modal .meth-header h3 {
@@ -548,7 +550,20 @@ font-size: 18px; cursor: pointer; padding: 2px 6px;
 border-radius: 4px; transition: color .15s;
 }
 #meth-modal .meth-close:hover { color: #fff; }
-#meth-modal .meth-body { padding: 20px 22px 24px; }
+#meth-modal .meth-body {
+padding: 20px 22px 24px;
+overflow-y: auto;
+min-height: 0;
+scrollbar-gutter: stable;
+}
+#meth-modal .meth-body::-webkit-scrollbar { width: 9px; }
+#meth-modal .meth-body::-webkit-scrollbar-track { background: transparent; }
+#meth-modal .meth-body::-webkit-scrollbar-thumb {
+background: #cbd5e1;
+border: 2px solid #fff;
+border-radius: 999px;
+}
+#meth-modal .meth-body::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 #meth-modal .meth-section { margin-bottom: 20px; }
 #meth-modal .meth-section-title {
 font-size: 10px; font-weight: 700;
@@ -586,15 +601,22 @@ border-radius: 4px; margin-bottom: 8px;
 border: 1px solid #bfdbfe;
 }
 #meth-btn {
-display: block; width: 100%; margin-top: 12px;
-padding: 8px; background: #f8fafc;
-border: 1px solid #e2e8f0; border-radius: 7px;
-color: #64748b; font-size: 12px; cursor: pointer;
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 6px 12px;
+background: #f8fafc;
+border: none;
+border-radius: 6px;
+color: #000;
+font-size: 12px;
+cursor: pointer;
 font-family: 'Inter', sans-serif;
-transition: border-color .15s, color .15s, background .15s;
-font-weight: 500;
+transition: background .15s;
+font-weight: 600;
+white-space: nowrap;
 }
-#meth-btn:hover { border-color: #1e40af; color: #1e40af; background: #eff6ff; }
+#meth-btn:hover { background: #eef0f2; }
 
 /* ── Age assumption note in simulator ── */
 .sim-age-note {
@@ -995,6 +1017,13 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     padding: 4px 8px;
     font-size: 11px;
   }
+  #meth-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  #meth-btn span {
+    display: none;
+  }
 
   /* 2. Reposition Right Control Panel to Bottom Sheet or Toggle Drawer */
   #ctrl-panel {
@@ -1117,6 +1146,27 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 .contact-backdrop.open {
     opacity: 1;
     pointer-events: auto;
+}
+
+/* Center the methodology modal within the map viewport, excluding the
+   desktop header and right-side controls. */
+#meth-backdrop {
+    z-index: 8800;
+}
+
+@media (min-width: 768px) {
+    #meth-backdrop {
+        top: 52px;
+        right: 280px;
+        bottom: 0;
+        width: auto;
+        height: auto;
+    }
+
+    #meth-modal {
+        width: 66.666%;
+        max-width: calc(100% - 32px);
+    }
 }
 
 
