@@ -613,7 +613,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="sim-modal">
 <div class="sim-header">
     <h3>Spill Cost Simulator</h3>
-    <div class="sim-subhead">OLS Regression Model &mdash; 2015&ndash;2024 PHMSA Data</div>
+    <div class="sim-subhead">OLS Regression Model: 2015&ndash;2024 PHMSA Data</div>
     <button class="sim-close" id="sim-close-btn">&#x2715;</button>
 </div>
 <div class="sim-body">
@@ -622,15 +622,15 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="sim-info-strip">
     <div class="info-row">
         <span class="info-label">Pipeline</span>
-        <span class="info-val" id="sim-pipename">—</span>
+        <span class="info-val" id="sim-pipename">Not available</span>
     </div>
     <div class="info-row">
         <span class="info-label">Operator</span>
-        <span class="info-val" id="sim-opername">—</span>
+        <span class="info-val" id="sim-opername">Not available</span>
     </div>
     <div class="info-row">
         <span class="info-label">State</span>
-        <span class="info-val" id="sim-state-display">—</span>
+        <span class="info-val" id="sim-state-display">Not available</span>
     </div>
     </div>
 
@@ -682,8 +682,8 @@ document.body.insertAdjacentHTML('beforeend', `
     <div id="sim-results">
     <div class="result-main">
         <div class="result-label">Estimated Cost (2024 USD)</div>
-        <div class="result-cost" id="res-cost">—</div>
-        <div class="result-ci" id="res-ci">Approximate 95% Interval: <strong>—</strong></div>
+        <div class="result-cost" id="res-cost">Not calculated</div>
+        <div class="result-ci" id="res-ci">Approximate 95% Interval: <strong>Not calculated</strong></div>
     </div>
 
     <p class="breakdown-title">Estimated Cost Breakdown</p>
@@ -860,10 +860,10 @@ function populateStateFilterOptions() {
         fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json')
             .then(r => r.json())
             .then(function(topology) {
-                // us-atlas ships as TopoJSON — convert to GeoJSON
+                // us-atlas ships as TopoJSON; convert it to GeoJSON.
                 var statesGeoJSON = topojson.feature(topology, topology.objects.states);
 
-                // us-atlas uses FIPS codes, not abbreviations — map them
+                // us-atlas uses FIPS codes rather than abbreviations, so map them.
                 var fipsToPostal = {
                     '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT',
                     '10':'DE','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN',
@@ -969,7 +969,7 @@ document.getElementById('sim-run-btn').addEventListener('click', function () {
     document.getElementById('res-cost').textContent = fmt(predCost);
     document.getElementById('res-ci').innerHTML =
         'Approximate 95% Interval: <strong>' +
-        fmt(lowerMean) + ' &mdash; ' + fmt(upperMean) + '</strong>';
+        fmt(lowerMean) + ' to ' + fmt(upperMean) + '</strong>';
 
     // Cost breakdown bars
     var breakdown = document.getElementById('res-breakdown');

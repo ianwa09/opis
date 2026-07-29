@@ -23,16 +23,26 @@ left:0;
 
 
 .foliumtooltip {
-
+width: min(420px, calc(100vw - 32px));
+white-space: normal;
 }
 .foliumtooltip table{
 margin: auto;
+width: 100%;
 }
 .foliumtooltip tr{
 text-align: left;
 }
 .foliumtooltip th{
-padding: 2px; padding-right: 8px;
+width: 110px;
+padding: 2px;
+padding-right: 8px;
+vertical-align: top;
+}
+.foliumtooltip td {
+vertical-align: top;
+word-break: normal;
+overflow-wrap: break-word;
 }
 
 

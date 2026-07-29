@@ -86,7 +86,15 @@
 }
 
             );
-        
+
+            function addDatasetSource(data, source) {
+                (data.features || []).forEach(function (feature) {
+                    feature.properties = feature.properties || {};
+                    feature.properties.DATA_SOURCE = source;
+                });
+                return data;
+            }
+
     
             var tile_layer_65789e7f57e18808171f2faaa5fcc82e = L.tileLayer(
                 "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -157,6 +165,10 @@
         });
 
         function geo_json_4b1d758048ef739b6042e56e6cc670cd_add (data) {
+            addDatasetSource(
+                data,
+                "U.S. Energy Information Administration (EIA), ArcGIS Hub dataset bb2aee97117d403ea63bcfe6be4a12c8_0"
+            );
             geo_json_4b1d758048ef739b6042e56e6cc670cd
                 .addData(data);
         }
@@ -176,8 +188,8 @@
             return feature;
         }
     }
-    let fields = ["Opername", "Pipename"];
-    let aliases = ["Operator:", "Pipeline Name:"];
+    let fields = ["Opername", "Pipename", "DATA_SOURCE"];
+    let aliases = ["Operator:", "Pipeline Name:", "Source:"];
     let table = '<table>' +
         String(
         fields.map(
@@ -228,6 +240,10 @@
         });
 
         function geo_json_9a5a8321701a3d88a35c68c0fc9c3769_add (data) {
+            addDatasetSource(
+                data,
+                "HIFLD Natural Gas Pipelines, DataLumos/ICPSR 239743"
+            );
             geo_json_9a5a8321701a3d88a35c68c0fc9c3769
                 .addData(data);
         }
@@ -247,8 +263,8 @@
             return feature;
         }
     }
-    let fields = ["operator", "typepipe"];
-    let aliases = ["Operator:", "Type:"];
+    let fields = ["operator", "typepipe", "DATA_SOURCE"];
+    let aliases = ["Operator:", "Type:", "Source:"];
     let table = '<table>' +
         String(
         fields.map(
@@ -299,6 +315,10 @@
         });
 
         function geo_json_90c4b8a9f122b1ea491be72c37d83408_add (data) {
+            addDatasetSource(
+                data,
+                "HIFLD Hydrocarbon Gas Liquid / Petroleum Product Pipelines, DataLumos/ICPSR 239260"
+            );
             geo_json_90c4b8a9f122b1ea491be72c37d83408
                 .addData(data);
         }
@@ -318,8 +338,8 @@
             return feature;
         }
     }
-    let fields = ["opername", "pipename"];
-    let aliases = ["Operator:", "Pipeline Name:"];
+    let fields = ["opername", "pipename", "DATA_SOURCE"];
+    let aliases = ["Operator:", "Pipeline Name:", "Source:"];
     let table = '<table>' +
         String(
         fields.map(
@@ -370,6 +390,10 @@
         });
 
         function geo_json_eb363b4d3f65896b9b385e5518c884e6_add (data) {
+            addDatasetSource(
+                data,
+                "HIFLD Hydrocarbon Gas Liquid / Petroleum Product Pipelines, DataLumos/ICPSR 239260"
+            );
             geo_json_eb363b4d3f65896b9b385e5518c884e6
                 .addData(data);
         }
@@ -389,8 +413,8 @@
             return feature;
         }
     }
-    let fields = ["Opername", "Pipename"];
-    let aliases = ["Operator:", "Pipeline Name:"];
+    let fields = ["Opername", "Pipename", "DATA_SOURCE"];
+    let aliases = ["Operator:", "Pipeline Name:", "Source:"];
     let table = '<table>' +
         String(
         fields.map(
@@ -441,6 +465,10 @@
         });
 
         function geo_json_8612f9cc589b10bf76787f9aa4f0fd37_add (data) {
+            addDatasetSource(
+                data,
+                "HIFLD Submarine Pipelines, DataLumos/ICPSR 240657 and 240796"
+            );
             geo_json_8612f9cc589b10bf76787f9aa4f0fd37
                 .addData(data);
         }
@@ -460,8 +488,8 @@
             return feature;
         }
     }
-    let fields = ["Category_o", "Product"];
-    let aliases = ["Category:", "Product:"];
+    let fields = ["Category_o", "Product", "Source_Ind", "DATA_SOURCE"];
+    let aliases = ["Category:", "Product:", "Record Source ID:", "Dataset Source:"];
     let table = '<table>' +
         String(
         fields.map(
@@ -526,6 +554,10 @@
         });
 
         function geo_json_223786fa07ce4c645e9aa632279edd6d_add (data) {
+            addDatasetSource(
+                data,
+                "HIFLD POL Terminals, DataLumos/ICPSR 239798"
+            );
             geo_json_223786fa07ce4c645e9aa632279edd6d
                 .addData(data);
         }
@@ -546,8 +578,8 @@
             return feature;
         }
     }
-    let fields = ["NAME", "COMMODITY", "CITY"];
-    let aliases = ["Facility Name:", "Contents:", "City:"];
+    let fields = ["NAME", "COMMODITY", "CITY", "SOURCE", "DATA_SOURCE"];
+    let aliases = ["Facility Name:", "Contents:", "City:", "Record Source:", "Dataset Source:"];
     let table = '<table>' +
         String(
         fields.map(
@@ -612,6 +644,10 @@
         });
 
         function geo_json_e1820dc43496457f7e8df085b7bfdaa6_add (data) {
+            addDatasetSource(
+                data,
+                "Petroleum Terminal Facilities, DataLumos/ICPSR 240798"
+            );
             geo_json_e1820dc43496457f7e8df085b7bfdaa6
                 .addData(data);
         }
@@ -632,8 +668,8 @@
             return feature;
         }
     }
-    let fields = ["COMP_NAME", "TERM_NAME", "CITY"];
-    let aliases = ["Company:", "Terminal Name:", "City:"];
+    let fields = ["COMP_NAME", "TERM_NAME", "CITY", "SOURCE", "DATA_SOURCE"];
+    let aliases = ["Company:", "Terminal Name:", "City:", "Record Source:", "Dataset Source:"];
     let table = '<table>' +
         String(
         fields.map(
@@ -698,11 +734,10 @@
         });
 
         function geo_json_74a8ff648bc5b9190beaecc887f54037_add (data) {
-            data.features.forEach(function (feature) {
-                feature.properties = feature.properties || {};
-                feature.properties.DATA_SOURCE =
-                    "PHMSA Hazardous Liquid Incident Reports (phmsa.dot.gov)";
-            });
+            addDatasetSource(
+                data,
+                "PHMSA Hazardous Liquid Incident Reports (phmsa.dot.gov)"
+            );
             // Cache the full, unfiltered dataset so the spill filter panel
             // (app.js) can rebuild this layer from a subset without needing
             // to re-fetch or duplicate the ~5,800-feature dataset.
@@ -945,7 +980,7 @@
                     </div>
 
                     <div id="spill-filters-count">
-                      Showing <strong id="spill-filters-count-val">&mdash;</strong> of <strong id="spill-filters-count-total">&mdash;</strong> incidents
+                      Showing <strong id="spill-filters-count-val">&hellip;</strong> of <strong id="spill-filters-count-total">&hellip;</strong> incidents
                     </div>
 
                     <button id="spill-filters-reset">&#x2715; Reset filters</button>
