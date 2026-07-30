@@ -240,9 +240,9 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
     <div class="meth-section">
     <div class="meth-section-title">1. Pipeline Network Data</div>
-    <p><strong>Source &amp; Methodology:</strong> Due to the removal of official geospatial datasets from federal agency platforms (such as the DOT and DOE) under the current administration, pipeline geolocational and infrastructural data had to be sourced via public internet data archives and secondary repositories.</p>
+    <p><strong>Sources:</strong> When the original federal download endpoints were unavailable, archived copies of the federal infrastructure datasets were obtained through DataLumos. The crude oil pipeline layer was obtained separately from an ArcGIS Hub copy of U.S. Energy Information Administration data.</p>
     <ul>
-        <li><strong>DataLumos Archive (ICPSR / University of Michigan):</strong> Sourced archived government datasets for Homeland Infrastructure Foundation-Level Data (HIFLD) layers, including:
+        <li><strong>DataLumos Archive (ICPSR / University of Michigan):</strong> Archived government datasets for Homeland Infrastructure Foundation-Level Data (HIFLD) layers, including:
             <ul>
                 <li>Submarine Pipelines (ICPSR 240657 &amp; ICPSR 240796)</li>
                 <li>Natural Gas Pipelines (ICPSR 239743)</li>
@@ -251,7 +251,15 @@ document.body.insertAdjacentHTML('beforeend', `
                 <li>POL (Petroleum, Oil, and Lubricants) Terminals (ICPSR 239798)</li>
             </ul>
         </li>
-        <li><strong>ArcGIS Hub (Esri Federal Datasets):</strong> Sourced the Crude Oil layer utilizing U.S. Energy Information Administration (EIA) data hosted via Esri's public dataset hub. See Appendix B for source link.</li>
+        <li><strong>ArcGIS Hub (Esri Federal Datasets):</strong> Crude oil pipeline geometry from U.S. Energy Information Administration (EIA) data hosted through Esri's public dataset hub. See Appendix B for the source link.</li>
+    </ul>
+    <p><strong>Processing and display:</strong> The archived source files are stored as GeoJSON snapshots and embedded in the application for display with Leaflet. The map does not request live pipeline data from an agency server when it loads. Line features are displayed as pipeline or underwater-infrastructure segments, while terminal datasets are displayed as facility points. A line feature generally represents a source-dataset segment rather than an entire pipeline system, and features without usable geometry cannot be drawn.</p>
+    <ul>
+        <li>The HGL source geometry uses Web Mercator coordinates (EPSG:3857). Its map-processing workflow converts those coordinates to geographic longitude and latitude before web-map use.</li>
+        <li>Original descriptive attributes are retained where available. Pipeline tooltips identify the archived dataset, and terminal tooltips also display each record's <code>SOURCE</code> field. That field may identify EIA, HIFLD, IRS, EPA, a company website, or another contributing source.</li>
+        <li>The terminal <code>SOURCE</code> field describes the provenance of an individual facility record. The DataLumos citation describes the archived dataset through which that record was obtained.</li>
+        <li>The submarine layer is a broader USACE Inland Electronic Navigational Chart underwater-infrastructure dataset. It includes supply pipes, intake pipes, outfall pipes, and sewers, with reported products that include gas, oil, water, and chemicals. Records with a blank or unknown product are retained.</li>
+        <li>These layers are static archived snapshots. They should not be interpreted as a live or complete inventory of current infrastructure.</li>
     </ul>
     </div>
 
@@ -268,25 +276,32 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <div class="meth-section">
     <div class="meth-section-title">3. Spill Cost Simulation Model</div>
-    <p><strong>Method:</strong> The deployed application identifies its embedded coefficients as coming from an Ordinary Least Squares (OLS) regression on PHMSA crude oil incident records from 2015 to 2024. The dependent variable is documented as <code>log1p</code>-transformed total incident cost, adjusted to 2024 dollars.</p>
+    <p><strong>Training data and outcome:</strong> The cost model was developed from PHMSA crude oil incident records covering 2015 through 2024. The modeled outcome is <code>log1p</code>-transformed total incident cost in 2024 dollars.</p>
+    <ul>
+        <li>Total incident cost is calculated by summing <code>EST_COST_OPER_PAID</code>, <code>EST_COST_PROP_DAMAGE</code>, <code>EST_COST_EMERGENCY</code>, <code>EST_COST_ENVIRONMENTAL</code>, and <code>EST_COST_OTHER</code>.</li>
+        <li>Equipment age is calculated as incident year minus installation year.</li>
+        <li>Historical costs are converted to 2024 dollars using annual inflation-adjustment factors. Records with adjusted costs below $100 or missing equipment age are excluded, followed by incidents above the 97th percentile of adjusted cost.</li>
+        <li>Release volume and adjusted cost are transformed with <code>log1p</code>. Missing or unrecognized values in five binary indicator fields are converted to zero.</li>
+        <li>Location type, incident area type, pipeline facility type, and state are one-hot encoded. A 50-tree random forest with five-fold RFECV selects predictors using R-squared, after which an OLS model is fitted on the selected columns.</li>
+    </ul>
+    <p><strong>Model summary:</strong> The final model uses approximately 2,400 incidents and has an adjusted R-squared of approximately 0.61.</p>
     <p><strong>Equipment age:</strong> All simulations use 50 years as a fixed input to keep estimates comparable across pipeline segments. The application does not read or estimate the actual installation age of the selected pipeline.</p>
     <ul>
-        <li>The application records an adjusted R-squared of approximately 0.61; the underlying regression output is not bundled with the deployed repository.</li>
-        <li>The displayed interval is an approximate log-scale interval calculated with the same fixed standard error (0.078) for every scenario. It is not a prediction range for an individual incident.</li>
+        <li>The displayed interval applies the same fixed log-scale error value of 0.078 to every scenario. It is an approximate uncertainty range, not a scenario-specific confidence interval or an individual-incident prediction range.</li>
         <li>The result is a back-transformed log-scale model estimate. Real-world costs can vary significantly, and the deployed calculation does not apply a retransformation or smearing correction.</li>
     </ul>
     </div>
 
     <div class="meth-section">
     <div class="meth-section-title">4. Cost Breakdown Categories</div>
-    <p>The deployed tool allocates each modeled total using the following fixed shares, documented in the application as derived from PHMSA cost category sub-totals:</p>
+    <p>The five PHMSA fields below are summed to create total incident cost. For presentation in the simulator, each modeled total is allocated using the fixed category shares shown. These shares do not change with the selected scenario.</p>
     <table class="meth-table">
         <tr><th>Category</th><th>Share</th><th>PHMSA Field</th></tr>
-        <tr><td>Operator Paid</td><td>38%</td><td>OPERATOR_PAID_COST</td></tr>
-        <tr><td>Property Damage</td><td>22%</td><td>PROPERTY_DAMAGE_COST</td></tr>
-        <tr><td>Emergency Response</td><td>18%</td><td>EMERGENCY_RESPONSE_COST</td></tr>
-        <tr><td>Environmental</td><td>15%</td><td>ENVIRONMENTAL_REMEDIATION_COST</td></tr>
-        <tr><td>Other</td><td>7%</td><td>OTHER_COSTS</td></tr>
+        <tr><td>Operator Paid</td><td>38%</td><td>EST_COST_OPER_PAID</td></tr>
+        <tr><td>Property Damage</td><td>22%</td><td>EST_COST_PROP_DAMAGE</td></tr>
+        <tr><td>Emergency Response</td><td>18%</td><td>EST_COST_EMERGENCY</td></tr>
+        <tr><td>Environmental</td><td>15%</td><td>EST_COST_ENVIRONMENTAL</td></tr>
+        <tr><td>Other</td><td>7%</td><td>EST_COST_OTHER</td></tr>
     </table>
     </div>
 
@@ -298,7 +313,7 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="meth-section">
     <span class="appendix-label">Appendix A</span>
     <div class="meth-section-title" style="margin-top:6px">OLS Regression Coefficients</div>
-    <p>Key model coefficients (log-scale, applied to log-transformed cost):</p>
+    <p>The simulator uses the following log-scale model constants:</p>
     <table class="meth-table">
         <tr><th>Variable</th><th>Coefficient</th><th>Interpretation</th></tr>
         <tr><td>Intercept</td><td>9.42</td><td>Baseline cost approx. $12,300</td></tr>
@@ -320,7 +335,8 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="meth-section-title" style="margin-top:6px">Data Sources</div>
     <ul>
         <li>PHMSA Incident Data: phmsa.dot.gov/data-and-statistics/pipeline/pipeline-incident-flagged-files</li>
-        <li>EIA Pipeline Data: hub.arcgis.com/datasets/bb2aee97117d403ea63bcfe6be4a12c8_0</li>
+        <li>DataLumos archived HIFLD datasets: ICPSR 240657, 240796, 239743, 239260, 240798, and 239798</li>
+        <li>EIA Crude Oil Pipeline Data: hub.arcgis.com/datasets/bb2aee97117d403ea63bcfe6be4a12c8_0</li>
         <li>CPI Inflation Adjustment: bls.gov/cpi (Series CUUR0000SA0)</li>
         <li>Spill state polygons: us-atlas version 3; pipeline and fallback state detection: bounding boxes embedded in the application</li>
     </ul>
@@ -335,6 +351,11 @@ document.body.insertAdjacentHTML('beforeend', `
         <li>The displayed interval uses a fixed standard error and should not be interpreted as a scenario-specific prediction interval.</li>
         <li>Pipeline location data reflects publicly available federal filings and may not capture recent route changes, abandonments, or new construction.</li>
         <li>The 50-year equipment age input may not match the actual installation date of any specific pipeline segment.</li>
+        <li>The model is calibrated to crude oil incidents and should not be interpreted as a cost model for other pipeline commodities.</li>
+        <li>Excluding incidents below $100 and above the 97th percentile limits how well the model represents extremely small or exceptionally costly incidents.</li>
+        <li>Feature selection and the final OLS fit use the same encoded dataset. The reported adjusted R-squared is an in-sample measure rather than a held-out performance estimate.</li>
+        <li>Missing or unrecognized binary indicator values are treated as zero, which may conflate unknown values with reported negative responses.</li>
+        <li>Fixed cost-category shares and state adjustments simplify variation that may differ across individual incidents.</li>
     </ul>
     </div>
 

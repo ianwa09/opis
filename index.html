@@ -96,6 +96,52 @@
                 return data;
             }
 
+            function convertWebMercatorGeoJSONToLongitudeLatitude(data) {
+                var earthRadiusMeters = 6378137;
+
+                function convertCoordinates(coordinates) {
+                    if (!Array.isArray(coordinates)) return coordinates;
+
+                    if (
+                        coordinates.length >= 2 &&
+                        typeof coordinates[0] === 'number' &&
+                        typeof coordinates[1] === 'number'
+                    ) {
+                        var x = coordinates[0];
+                        var y = coordinates[1];
+
+                        // GeoJSON passed to Leaflet must use longitude and latitude.
+                        // Only convert projected meter values so already-correct data
+                        // cannot be transformed a second time.
+                        if (Math.abs(x) > 180 || Math.abs(y) > 90) {
+                            var longitude = (x / earthRadiusMeters) * (180 / Math.PI);
+                            var latitude = (
+                                2 * Math.atan(Math.exp(y / earthRadiusMeters)) -
+                                Math.PI / 2
+                            ) * (180 / Math.PI);
+                            return [longitude, latitude].concat(coordinates.slice(2));
+                        }
+
+                        return coordinates;
+                    }
+
+                    return coordinates.map(convertCoordinates);
+                }
+
+                (data.features || []).forEach(function (feature) {
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        feature.geometry.coordinates = convertCoordinates(
+                            feature.geometry.coordinates
+                        );
+                    }
+                });
+
+                // The converted coordinates follow the GeoJSON longitude/latitude
+                // convention, so the source EPSG:3857 declaration no longer applies.
+                if (data.crs) delete data.crs;
+                return data;
+            }
+
     
             var tile_layer_65789e7f57e18808171f2faaa5fcc82e = L.tileLayer(
                 "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -391,6 +437,7 @@
         });
 
         function geo_json_eb363b4d3f65896b9b385e5518c884e6_add (data) {
+            convertWebMercatorGeoJSONToLongitudeLatitude(data);
             addDatasetSource(
                 data,
                 "HIFLD Hydrocarbon Gas Liquid / Petroleum Product Pipelines, DataLumos/ICPSR 239260"
@@ -875,7 +922,7 @@
                 'Crude Oil':            feature_group_5b0dfed6baae0869165359db3af8c544,
                 'Natural Gas':          feature_group_d79a63b58ef60015b33a0f6e11d5dd61,
                 'Petroleum Product':    feature_group_40bced8c6f59d655fde0781991531044,
-
+                'Hydrocarbon Gas Liquids': feature_group_357123ba0331538e411a1b41ab21294c,
                 'Submarine':            feature_group_e70ec41a953fce78fa54a7028d1d3046,
                 'POL Storage Tanks':    feature_group_f4540c23926000afe26df47786ce488e,
                 'Petroleum Terminals':  feature_group_e4a7cd78a21b50f69a050c24ccfdfa61,
@@ -884,7 +931,7 @@
                 'Crude Oil':          '#e05c2a',
                 'Natural Gas':        '#4a9eca',
                 'Petroleum Product':  '#9b59b6',
-
+                'Hydrocarbon Gas Liquids': '#ffff00',
                 'Submarine':          '#1abc9c',
                 'POL Storage Tanks':  '#e74c3c',
                 'Petroleum Terminals': '#95a5a6',

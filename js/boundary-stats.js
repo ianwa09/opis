@@ -109,6 +109,7 @@ window.addEventListener('load', function() {
             'Crude Oil': 0,
             'Natural Gas': 0,
             'Petroleum Product': 0,
+            'Hydrocarbon Gas Liquids': 0,
             'Other Infrastructure': 0
         };
 
@@ -120,7 +121,7 @@ window.addEventListener('load', function() {
             'geo_json_4b1d758048ef739b6042e56e6cc670cd', // Crude Oil
             'geo_json_9a5a8321701a3d88a35c68c0fc9c3769', // Natural Gas
             'geo_json_90c4b8a9f122b1ea491be72c37d83408', // Petroleum Product
-            'geo_json_eb363b4d3f65896b9b385e5518c884e6', 
+            'geo_json_eb363b4d3f65896b9b385e5518c884e6', // Hydrocarbon Gas Liquids
             'geo_json_8612f9cc589b10bf76787f9aa4f0fd37'  // Submarine
         ];
         
@@ -148,6 +149,8 @@ window.addEventListener('load', function() {
                                 
                                 if (commodity.includes('crude') || layerId === 'geo_json_4b1d758048ef739b6042e56e6cc670cd') {
                                     calculatedCategory = 'Crude Oil';
+                                } else if (layerId === 'geo_json_eb363b4d3f65896b9b385e5518c884e6') {
+                                    calculatedCategory = 'Hydrocarbon Gas Liquids';
                                 } else if (commodity.includes('gas') || layerId === 'geo_json_9a5a8321701a3d88a35c68c0fc9c3769') {
                                     calculatedCategory = 'Natural Gas';
                                 } else if (commodity.includes('product') || commodity.includes('petroleum') || layerId === 'geo_json_90c4b8a9f122b1ea491be72c37d83408') {
@@ -336,6 +339,10 @@ window.addEventListener('load', function() {
                     <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Petroleum Product'] / maxCrossings) * 100}%; height: 100%; background: #16a34a;"></div></div>
                 </div>
                 <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Hydrocarbon Gas Liquids</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Hydrocarbon Gas Liquids']}</span></div>
+                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Hydrocarbon Gas Liquids'] / maxCrossings) * 100}%; height: 100%; background: #ca8a04;"></div></div>
+                </div>
+                <div>
                     <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Other Infrastructure</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Other Infrastructure']}</span></div>
                     <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Other Infrastructure'] / maxCrossings) * 100}%; height: 100%; background: #475569;"></div></div>
                 </div>
@@ -417,6 +424,7 @@ window.addEventListener('load', function() {
             'feature_group_5b0dfed6baae0869165359db3af8c544',
             'feature_group_d79a63b58ef60015b33a0f6e11d5dd61',
             'feature_group_40bced8c6f59d655fde0781991531044',
+            'feature_group_357123ba0331538e411a1b41ab21294c',
             'feature_group_e70ec41a953fce78fa54a7028d1d3046',
             'feature_group_f4540c23926000afe26df47786ce488e',
             'feature_group_e4a7cd78a21b50f69a050c24ccfdfa61',

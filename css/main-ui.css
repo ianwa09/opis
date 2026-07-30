@@ -718,6 +718,7 @@ font-weight: 700;
 #meth-modal .meth-table td {
 padding: 6px 10px; color: #475569;
 border-bottom: 1px solid #f1f5f9;
+overflow-wrap: anywhere;
 }
 #meth-modal .meth-table tr:last-child td { border-bottom: none; }
 #meth-modal .appendix-label {
