@@ -999,6 +999,7 @@ function updateSpillVisualization() {
         plot_bgcolor: '#ffffff',
         margin: { l: 72, r: 24, t: 50, b: bottomMargin },
         hovermode: 'x unified',
+        hoversort: 'value descending',
         xaxis: {
             title: { text: 'Incident date', standoff: 10 },
             type: 'date',
