@@ -359,6 +359,32 @@ border-color: #1e40af;
 color: #1e40af;
 font-weight: 600;
 }
+#filter-volume-custom-row {
+display: flex;
+align-items: center;
+gap: 6px;
+margin-top: 7px;
+}
+#filter-volume-custom-row[hidden] { display: none; }
+#filter-volume-custom-input {
+min-width: 0;
+flex: 1;
+padding: 6px 8px;
+border: 1px solid #cbd5e1;
+border-radius: 6px;
+color: #334155;
+font: 11.5px 'Inter', sans-serif;
+}
+#filter-volume-custom-apply {
+padding: 6px 10px;
+border: none;
+border-radius: 6px;
+background: #1e40af;
+color: #fff;
+font: 600 11px 'Inter', sans-serif;
+cursor: pointer;
+}
+#filter-volume-custom-apply:hover { background: #1d3a9e; }
 #spill-filters select.filter-select {
 width: 100%;
 padding: 6px 8px;
@@ -481,6 +507,26 @@ background: #eff6ff;
 border-color: #93c5fd;
 color: #1e40af;
 }
+#spill-chart-btn {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 7px;
+width: 100%;
+margin-top: 12px;
+margin-bottom: 8px;
+padding: 9px 10px;
+background: #1e40af;
+border: none;
+border-radius: 7px;
+color: #fff;
+font-size: 11.5px;
+font-weight: 600;
+font-family: 'Inter', sans-serif;
+cursor: pointer;
+transition: background .15s;
+}
+#spill-chart-btn:hover { background: #1d3a9e; }
 #spill-filters-count {
 font-size: 10.5px;
 color: #94a3b8;
@@ -699,6 +745,102 @@ font-weight: 600;
 white-space: nowrap;
 }
 #meth-btn:hover { background: #eef0f2; }
+
+/* ── Spill data visualization modal ── */
+#chart-modal {
+width: min(960px, 92vw);
+max-height: 86vh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+background: #fff;
+border: 1px solid #e2e8f0;
+border-radius: 12px;
+box-shadow: 0 8px 40px rgba(0,0,0,.18);
+font-family: 'Inter', sans-serif;
+color: #1a2533;
+}
+#chart-modal .chart-header {
+position: relative;
+flex: 0 0 auto;
+padding: 16px 18px 13px;
+background: #1e3a5f;
+}
+#chart-modal .chart-header h3 {
+margin: 0 0 2px;
+font-size: 15px;
+font-weight: 700;
+color: #fff;
+}
+#chart-modal .chart-subhead {
+font-size: 11px;
+color: #bfdbfe;
+}
+#chart-modal .chart-close {
+position: absolute;
+top: 12px;
+right: 14px;
+padding: 2px 6px;
+background: none;
+border: none;
+border-radius: 4px;
+color: rgba(255,255,255,.65);
+font-size: 18px;
+cursor: pointer;
+}
+#chart-modal .chart-close:hover { color: #fff; }
+#chart-modal .chart-body {
+min-height: 0;
+overflow-y: auto;
+padding: 16px 18px 18px;
+}
+#chart-modal .chart-controls {
+display: grid;
+grid-template-columns: 1.5fr 1fr 1fr;
+gap: 10px;
+margin-bottom: 8px;
+}
+#chart-modal .chart-control label {
+display: block;
+margin-bottom: 4px;
+color: #64748b;
+font-size: 10px;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: .5px;
+}
+#chart-modal .chart-control select {
+width: 100%;
+padding: 7px 9px;
+border: 1px solid #cbd5e1;
+border-radius: 6px;
+background: #fff;
+color: #334155;
+font: 11.5px 'Inter', sans-serif;
+}
+#spill-chart-scope {
+min-height: 18px;
+margin: 2px 0 4px;
+color: #64748b;
+font-size: 10.5px;
+}
+#spill-plot {
+width: 100%;
+height: 520px;
+}
+#spill-chart-empty {
+display: none;
+padding: 50px 20px;
+text-align: center;
+color: #94a3b8;
+font-size: 12px;
+}
+.chart-source {
+margin-top: 5px;
+color: #94a3b8;
+font-size: 9.5px;
+text-align: right;
+}
 
 /* ── Age assumption note in simulator ── */
 .sim-age-note {
@@ -1159,6 +1301,14 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     width: 94vw !important;
     max-height: 80vh !important;
   }
+  #chart-modal {
+    width: 94vw;
+    max-height: 84vh;
+  }
+  #chart-modal .chart-controls {
+    grid-template-columns: 1fr;
+  }
+  #spill-plot { height: 500px; }
 
   #tutorial-modal {
     width: 94vw !important;
@@ -1202,6 +1352,7 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 /* ── Unified Animated Backdrops ─────────────────────────────────── */
 #tutorial-backdrop,
 #meth-backdrop,
+#chart-backdrop,
 #sim-backdrop,
 .contact-backdrop {
     position: fixed;
@@ -1216,18 +1367,22 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     justify-content: center;
     align-items: center;
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
     z-index: 3000;
 }
 
 /* Unified Open State */
 #tutorial-backdrop.open,
 #meth-backdrop.open,
+#chart-backdrop.open,
 #sim-backdrop.open,
 .contact-backdrop.open {
     opacity: 1;
+    visibility: visible;
     pointer-events: auto;
+    transition-delay: 0s;
 }
 
 /* Center the methodology modal within the map viewport, excluding the
@@ -1235,9 +1390,13 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 #meth-backdrop {
     z-index: 8800;
 }
+#chart-backdrop {
+    z-index: 8800;
+}
 
 @media (min-width: 768px) {
-    #meth-backdrop {
+    #meth-backdrop,
+    #chart-backdrop {
         top: 52px;
         right: 280px;
         bottom: 0;
@@ -1247,6 +1406,11 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 
     #meth-modal {
         width: 66.666%;
+        max-width: calc(100% - 32px);
+    }
+
+    #chart-modal {
+        width: 82%;
         max-width: calc(100% - 32px);
     }
 }

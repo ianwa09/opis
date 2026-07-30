@@ -30,9 +30,70 @@ window.addEventListener('load', function() {
     // Drawn boundary shapes are opted in after creation so the eraser still works.
     L.PM.setOptIn(true);
 
+    function registerBoundaryLayer(layer) {
+        const needsGeomanInit = layer.options.pmIgnore !== false || !layer.pm;
+        layer.options.pmIgnore = false;
+        layer.options.interactive = true;
+        layer._opisBoundary = true;
+        if (needsGeomanInit) L.PM.reInitLayer(layer);
+
+        if (layer.pm && typeof layer.pm.setOptions === 'function') {
+            layer.pm.setOptions({
+                allowEditing: true,
+                allowRemoval: true
+            });
+        }
+
+        if (layer._path) {
+            L.DomUtil.addClass(layer._path, 'opis-drawn-boundary');
+        }
+
+        // The generated pipeline paths are brought forward elsewhere for map
+        // visibility. Return the boundary to the top so it receives pointer
+        // events while editing or erasing.
+        if (typeof layer.bringToFront === 'function') {
+            layer.bringToFront();
+        }
+
+        // Geoman normally handles the removal click. This guarded fallback
+        // covers browsers that leave the path in a stale edit cursor state.
+        if (!layer._opisRemovalFallbackBound) {
+            layer._opisRemovalFallbackBound = true;
+            layer.on('click', function() {
+                if (!mapInstance.pm.globalRemovalModeEnabled()) return;
+                setTimeout(function() {
+                    if (
+                        mapInstance.hasLayer(layer) &&
+                        layer.pm &&
+                        typeof layer.pm.remove === 'function'
+                    ) {
+                        layer.pm.remove();
+                    }
+                }, 0);
+            });
+        }
+    }
+
 
     // 3. Reusable function to calculate metrics and update/open the popup
     function runBoundaryAnalysis(layer) {
+        registerBoundaryLayer(layer);
+        const previousBoundary = window.opisActiveBoundaryLayer;
+        if (
+            previousBoundary &&
+            previousBoundary !== layer &&
+            typeof previousBoundary.setStyle === 'function'
+        ) {
+            previousBoundary.setStyle({ color: '#3388ff', weight: 3 });
+        }
+        if (typeof layer.setStyle === 'function') {
+            layer.setStyle({ color: '#f59e0b', weight: 4 });
+        }
+        if (typeof layer.bringToFront === 'function') {
+            layer.bringToFront();
+        }
+        window.opisActiveBoundaryLayer = layer;
+
         const drawnPolygon = layer.toGeoJSON();
 
         // --- Calculation Counters ---
@@ -337,6 +398,7 @@ window.addEventListener('load', function() {
             if (mouseTooltip) mouseTooltip.style.display = 'none';
             if (causeTooltip) causeTooltip.style.display = 'none';
         });
+        document.dispatchEvent(new CustomEvent('opis:boundarychange'));
     }
 
     window.recalculateOpisBoundaryAnalysis = function(layerId) {
@@ -348,8 +410,7 @@ window.addEventListener('load', function() {
 
     mapInstance.on('pm:create', function(e) {
         const layer = e.layer;
-        layer.options.pmIgnore = false;
-        L.PM.reInitLayer(layer);
+        registerBoundaryLayer(layer);
 
         // Z-Index layer management
         const dataFeatureGroups = [
@@ -365,6 +426,7 @@ window.addEventListener('load', function() {
             var lg = window[id];
             if (lg && typeof lg.bringToFront === 'function') lg.bringToFront();
         });
+        layer.bringToFront();
 
         // Run analysis on creation
         runBoundaryAnalysis(layer);
@@ -380,5 +442,24 @@ window.addEventListener('load', function() {
                 runBoundaryAnalysis(layer);
             }
         });
+    });
+
+    mapInstance.on('pm:globalremovalmodetoggled', function(e) {
+        mapInstance.getContainer().classList.toggle('opis-removal-mode', e.enabled);
+        if (e.enabled) mapInstance.closePopup();
+
+        mapInstance.eachLayer(function(layer) {
+            if (!layer._opisBoundary) return;
+            registerBoundaryLayer(layer);
+        });
+    });
+
+    mapInstance.on('pm:remove', function(e) {
+        if (window.opisActiveBoundaryLayer === e.layer) {
+            window.opisActiveBoundaryLayer = null;
+            document.dispatchEvent(new CustomEvent('opis:boundarychange'));
+        }
+        const removedId = L.stamp(e.layer);
+        if (window.opisBoundaryAnalyses) delete window.opisBoundaryAnalyses[removedId];
     });
 });

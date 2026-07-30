@@ -34,6 +34,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>  
+    <script src="https://cdn.plot.ly/plotly-3.6.0.min.js" charset="utf-8"></script>
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -1050,12 +1051,23 @@
                         <button type="button" class="filter-pill" data-min-bbls="10">10+</button>
                         <button type="button" class="filter-pill" data-min-bbls="100">100+</button>
                         <button type="button" class="filter-pill" data-min-bbls="1000">1,000+</button>
+                        <button type="button" class="filter-pill" id="filter-volume-custom-pill"
+                          aria-controls="filter-volume-custom-row" aria-expanded="false">Custom</button>
+                      </div>
+                      <div id="filter-volume-custom-row" hidden>
+                        <input type="number" id="filter-volume-custom-input" min="0" step="any"
+                          inputmode="decimal" placeholder="Minimum barrels" aria-label="Custom minimum volume in barrels">
+                        <button type="button" id="filter-volume-custom-apply">Apply</button>
                       </div>
                     </div>
 
                     <div id="spill-filters-count">
                       Showing <strong id="spill-filters-count-val">&hellip;</strong> of <strong id="spill-filters-count-total">&hellip;</strong> incidents
                     </div>
+
+                    <button type="button" id="spill-chart-btn">
+                      <i class="bi bi-graph-up"></i> Visualize Filtered Spill Data
+                    </button>
 
                     <button id="spill-filters-reset">&#x2715; Reset filters</button>
 

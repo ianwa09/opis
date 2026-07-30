@@ -93,7 +93,7 @@ renderTutStep();
 
 // Helper function to close any open modals on the screen
 function closeAllModals() {
-    var openBackdrops = document.querySelectorAll('.contact-backdrop, #tutorial-backdrop, #meth-backdrop, #sim-backdrop');
+    var openBackdrops = document.querySelectorAll('.contact-backdrop, #tutorial-backdrop, #meth-backdrop, #chart-backdrop, #sim-backdrop');
     openBackdrops.forEach(function (backdrop) {
         backdrop.classList.remove('open');
     });
@@ -557,6 +557,7 @@ function applySpillFilters() {
     var countTotal = document.getElementById('spill-filters-count-total');
     if (countVal) countVal.textContent = filtered.length.toLocaleString();
     if (countTotal) countTotal.textContent = window.allSpillFeatures.length.toLocaleString();
+    if (typeof updateSpillVisualization === 'function') updateSpillVisualization();
 }
 
 function formatPlaybackDate(date) {
@@ -681,6 +682,7 @@ function renderSpillPlaybackDate(date) {
         window.allSpillFeatures.length.toLocaleString();
     document.getElementById('spill-timelapse-status').textContent =
         formatPlaybackDate(date) + ' | ' + targetIndex.toLocaleString() + ' incidents';
+    if (typeof updateSpillVisualization === 'function') updateSpillVisualization();
 }
 
 function startSpillTimelapse() {
@@ -713,6 +715,325 @@ function startSpillTimelapse() {
         if (nextValue >= Number(range.max)) stopSpillTimelapse();
     }, 180);
 }
+
+document.body.insertAdjacentHTML('beforeend', `
+<div id="chart-backdrop">
+  <div id="chart-modal" role="dialog" aria-modal="true" aria-labelledby="spill-chart-title">
+    <div class="chart-header">
+      <h3 id="spill-chart-title">Spill Data Over Time</h3>
+      <div class="chart-subhead">Active filters and the highlighted boundary are applied automatically</div>
+      <button class="chart-close" id="chart-close-btn" aria-label="Close spill chart">&#x2715;</button>
+    </div>
+    <div class="chart-body">
+      <div class="chart-controls">
+        <div class="chart-control">
+          <label for="spill-chart-metric">Variable</label>
+          <select id="spill-chart-metric">
+            <option value="total_volume">Total volume spilled</option>
+            <option value="incident_count">Number of incidents</option>
+            <option value="average_volume">Average spill size</option>
+            <option value="median_volume">Median spill size</option>
+            <option value="largest_spill">Largest single spill</option>
+            <option value="cumulative_volume">Cumulative volume spilled</option>
+            <option value="cumulative_incidents">Cumulative incidents</option>
+          </select>
+        </div>
+        <div class="chart-control">
+          <label for="spill-chart-period">Time interval</label>
+          <select id="spill-chart-period">
+            <option value="year">Year</option>
+            <option value="quarter">Quarter</option>
+            <option value="month">Month</option>
+          </select>
+        </div>
+        <div class="chart-control">
+          <label for="spill-chart-group">Series</label>
+          <select id="spill-chart-group">
+            <option value="none">All incidents</option>
+            <option value="commodity">By commodity</option>
+            <option value="cause">By cause</option>
+          </select>
+        </div>
+      </div>
+      <div id="spill-chart-scope" aria-live="polite"></div>
+      <div id="spill-plot" role="img" aria-label="Interactive spill data time-series chart"></div>
+      <div id="spill-chart-empty">No incidents match the current chart scope.</div>
+      <div class="chart-source">Source: PHMSA Hazardous Liquid Incident Reports</div>
+    </div>
+  </div>
+</div>
+`);
+
+var spillChartRevision = 0;
+
+function chartPeriodStart(date, interval) {
+    if (interval === 'month') return new Date(date.getFullYear(), date.getMonth(), 1);
+    if (interval === 'quarter') {
+        return new Date(date.getFullYear(), Math.floor(date.getMonth() / 3) * 3, 1);
+    }
+    return new Date(date.getFullYear(), 0, 1);
+}
+
+function nextChartPeriod(date, interval) {
+    var next = new Date(date);
+    if (interval === 'month') next.setMonth(next.getMonth() + 1);
+    else if (interval === 'quarter') next.setMonth(next.getMonth() + 3);
+    else next.setFullYear(next.getFullYear() + 1);
+    return next;
+}
+
+function chartPeriodKey(date) {
+    return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-01';
+}
+
+function chartPeriodLabel(date, interval) {
+    if (interval === 'year') return String(date.getFullYear());
+    if (interval === 'quarter') {
+        return 'Q' + (Math.floor(date.getMonth() / 3) + 1) + ' ' + date.getFullYear();
+    }
+    return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+}
+
+function chartGroupValue(feature, grouping) {
+    var props = feature.properties || {};
+    if (grouping === 'commodity') return props.COMMODITY_RELEASED_TYPE || 'Unknown commodity';
+    if (grouping === 'cause') return props.CAUSE || 'Unknown cause';
+    return 'All incidents';
+}
+
+function chartGroupLabel(value) {
+    if (value === 'CRUDE OIL') return 'Crude Oil';
+    if (value.indexOf('REFINED AND/OR PETROLEUM') === 0) return 'Refined / Petroleum';
+    if (value.indexOf('HVL OR OTHER') === 0) return 'HVL / Flammable Gas';
+    if (value.indexOf('BIOFUEL') === 0) return 'Biofuel / Alternative';
+    if (value.indexOf('CO2') === 0) return 'CO2';
+    return value.replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+}
+
+function chartMetricInfo(metric) {
+    var values = {
+        total_volume: { title: 'Total Volume Spilled', axis: 'Barrels', format: ',.1f', cumulative: false },
+        incident_count: { title: 'Number of Incidents', axis: 'Incidents', format: ',d', cumulative: false },
+        average_volume: { title: 'Average Spill Size', axis: 'Barrels per incident', format: ',.1f', cumulative: false },
+        median_volume: { title: 'Median Spill Size', axis: 'Barrels per incident', format: ',.1f', cumulative: false },
+        largest_spill: { title: 'Largest Single Spill', axis: 'Barrels', format: ',.1f', cumulative: false },
+        cumulative_volume: { title: 'Cumulative Volume Spilled', axis: 'Barrels', format: ',.1f', cumulative: true },
+        cumulative_incidents: { title: 'Cumulative Incidents', axis: 'Incidents', format: ',d', cumulative: true }
+    };
+    return values[metric];
+}
+
+function chartBucketValue(features, metric) {
+    if (metric === 'incident_count' || metric === 'cumulative_incidents') return features.length;
+    if (!features.length && metric !== 'total_volume' && metric !== 'cumulative_volume') {
+        return null;
+    }
+    var volumes = features.map(function (feature) {
+        return parseFloat(feature.properties.UNINTENTIONAL_RELEASE_BBLS) || 0;
+    });
+    if (!volumes.length) return 0;
+    if (metric === 'total_volume' || metric === 'cumulative_volume') {
+        return volumes.reduce(function (sum, value) { return sum + value; }, 0);
+    }
+    if (metric === 'average_volume') {
+        return volumes.reduce(function (sum, value) { return sum + value; }, 0) / volumes.length;
+    }
+    if (metric === 'largest_spill') return Math.max.apply(null, volumes);
+    if (metric === 'median_volume') {
+        volumes.sort(function (a, b) { return a - b; });
+        var middle = Math.floor(volumes.length / 2);
+        return volumes.length % 2
+            ? volumes[middle]
+            : (volumes[middle - 1] + volumes[middle]) / 2;
+    }
+    return 0;
+}
+
+function getHighlightedBoundary() {
+    var layer = window.opisActiveBoundaryLayer;
+    if (!layer || !map_10b250abf3b9fb60cf6682f90e22c04c.hasLayer(layer)) return null;
+    return layer;
+}
+
+function getSpillChartFeatures() {
+    var features = getFilteredSpillFeaturesForExport();
+    var boundaryLayer = getHighlightedBoundary();
+    if (!boundaryLayer) return features;
+    var boundary = boundaryLayer.toGeoJSON();
+    return features.filter(function (feature) {
+        try {
+            return turf.booleanPointInPolygon(feature, boundary);
+        } catch (error) {
+            return false;
+        }
+    });
+}
+
+function updateSpillVisualization() {
+    var backdrop = document.getElementById('chart-backdrop');
+    if (!backdrop || !backdrop.classList.contains('open')) return;
+
+    var plot = document.getElementById('spill-plot');
+    var empty = document.getElementById('spill-chart-empty');
+    var scope = document.getElementById('spill-chart-scope');
+    if (typeof Plotly === 'undefined') {
+        plot.style.display = 'none';
+        empty.style.display = 'block';
+        empty.textContent = 'Plotly could not be loaded. Check the network connection and try again.';
+        return;
+    }
+
+    var metric = document.getElementById('spill-chart-metric').value;
+    var interval = document.getElementById('spill-chart-period').value;
+    var grouping = document.getElementById('spill-chart-group').value;
+    var metricInfo = chartMetricInfo(metric);
+    var features = getSpillChartFeatures();
+    var boundaryLayer = getHighlightedBoundary();
+    var bounds = getSpillPlaybackBounds();
+    if (bounds && spillPlayback.currentDate && spillPlayback.currentDate < bounds.end) {
+        bounds.end = new Date(spillPlayback.currentDate);
+    }
+
+    scope.textContent =
+        features.length.toLocaleString() + ' incidents after active filters' +
+        (boundaryLayer ? ' and highlighted boundary' : '') +
+        (spillPlayback.currentDate ? ' through ' + formatPlaybackDate(spillPlayback.currentDate) : '');
+
+    if (!features.length || !bounds || bounds.start > bounds.end) {
+        plot.style.display = 'none';
+        empty.style.display = 'block';
+        empty.textContent = 'No incidents match the current chart scope.';
+        if (plot.data) Plotly.purge(plot);
+        return;
+    }
+
+    empty.style.display = 'none';
+    plot.style.display = 'block';
+
+    var periods = [];
+    var cursor = chartPeriodStart(bounds.start, interval);
+    var finalPeriod = chartPeriodStart(bounds.end, interval);
+    while (cursor <= finalPeriod) {
+        periods.push(new Date(cursor));
+        cursor = nextChartPeriod(cursor, interval);
+    }
+
+    var groups = {};
+    features.forEach(function (feature) {
+        var date = parseSpillDate(feature.properties.LOCAL_DATETIME);
+        if (!date) return;
+        var group = chartGroupValue(feature, grouping);
+        var period = chartPeriodKey(chartPeriodStart(date, interval));
+        if (!groups[group]) groups[group] = {};
+        if (!groups[group][period]) groups[group][period] = [];
+        groups[group][period].push(feature);
+    });
+
+    var groupNames = Object.keys(groups).sort();
+    var colors = ['#1e40af', '#e05c2a', '#16a34a', '#9333ea', '#0891b2', '#dc2626', '#ca8a04', '#475569'];
+    var traces = groupNames.map(function (group, groupIndex) {
+        var running = 0;
+        var y = periods.map(function (period) {
+            var value = chartBucketValue(groups[group][chartPeriodKey(period)] || [], metric);
+            if (metricInfo.cumulative) {
+                running += value;
+                return running;
+            }
+            return value;
+        });
+        return {
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: chartGroupLabel(group),
+            x: periods.map(chartPeriodKey),
+            y: y,
+            customdata: periods.map(function (period) {
+                return chartPeriodLabel(period, interval);
+            }),
+            line: { color: colors[groupIndex % colors.length], width: 2 },
+            marker: { color: colors[groupIndex % colors.length], size: 6 },
+            hovertemplate:
+                '%{customdata}<br>' + metricInfo.title + ': %{y:' + metricInfo.format + '}' +
+                (grouping === 'none' ? '' : '<br>' + chartGroupLabel(group)) +
+                '<extra></extra>'
+        };
+    });
+
+    var groupedLegend = grouping !== 'none';
+    var hasRangeSlider = interval !== 'year';
+    var compactChart = plot.clientWidth < 520;
+    var bottomMargin = groupedLegend
+        ? (hasRangeSlider ? (compactChart ? 235 : 190) : (compactChart ? 190 : 150))
+        : (hasRangeSlider ? 105 : 70);
+    var legendY = hasRangeSlider
+        ? (compactChart ? -0.68 : -0.48)
+        : (compactChart ? -0.48 : -0.3);
+
+    spillChartRevision++;
+    Plotly.react(plot, traces, {
+        title: { text: metricInfo.title, x: 0.02, xanchor: 'left', font: { size: 16, color: '#1e293b' } },
+        datarevision: spillChartRevision,
+        paper_bgcolor: '#ffffff',
+        plot_bgcolor: '#ffffff',
+        margin: { l: 72, r: 24, t: 50, b: bottomMargin },
+        hovermode: 'x unified',
+        xaxis: {
+            title: { text: 'Incident date', standoff: 10 },
+            type: 'date',
+            gridcolor: '#e2e8f0',
+            zeroline: false,
+            tickformat: interval === 'year' ? '%Y' : '%b %Y',
+            rangeslider: { visible: interval !== 'year', thickness: 0.08 }
+        },
+        yaxis: {
+            title: { text: metricInfo.axis },
+            rangemode: 'tozero',
+            gridcolor: '#e2e8f0',
+            zerolinecolor: '#cbd5e1'
+        },
+        legend: {
+            orientation: 'h',
+            x: 0,
+            y: legendY,
+            xanchor: 'left',
+            yanchor: 'top',
+            font: { size: 10 }
+        },
+        font: { family: 'Inter, sans-serif', size: 11, color: '#475569' }
+    }, {
+        responsive: true,
+        displaylogo: false,
+        toImageButtonOptions: {
+            format: 'png',
+            filename: 'opis-spill-data-over-time',
+            height: 700,
+            width: 1200,
+            scale: 2
+        }
+    });
+}
+
+function openSpillVisualization() {
+    document.getElementById('chart-backdrop').classList.add('open');
+    updateSpillVisualization();
+    setTimeout(function () {
+        var plot = document.getElementById('spill-plot');
+        if (typeof Plotly !== 'undefined' && plot.data) Plotly.Plots.resize(plot);
+    }, 50);
+}
+
+document.getElementById('spill-chart-btn').addEventListener('click', openSpillVisualization);
+document.getElementById('chart-close-btn').addEventListener('click', function () {
+    document.getElementById('chart-backdrop').classList.remove('open');
+});
+document.getElementById('chart-backdrop').addEventListener('click', function (event) {
+    if (event.target === this) this.classList.remove('open');
+});
+['spill-chart-metric', 'spill-chart-period', 'spill-chart-group'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', updateSpillVisualization);
+});
+document.addEventListener('opis:boundarychange', updateSpillVisualization);
 
 // Collapse/expand the filter panel
 document.getElementById('spill-filters-toggle').addEventListener('click', function () {
@@ -752,17 +1073,75 @@ document.getElementById('filter-state').addEventListener('change', function () {
     applySpillFilters();
 });
 
+function setCustomVolumeVisibility(visible) {
+    var row = document.getElementById('filter-volume-custom-row');
+    var pill = document.getElementById('filter-volume-custom-pill');
+    row.hidden = !visible;
+    pill.setAttribute('aria-expanded', visible ? 'true' : 'false');
+}
+
+function selectVolumeFilterControl(value, preferCustom) {
+    var matchedPreset = false;
+    document.querySelectorAll('#filter-volume-pills .filter-pill[data-min-bbls]').forEach(function (pill) {
+        var matches = !preferCustom && (parseFloat(pill.dataset.minBbls) || 0) === value;
+        pill.classList.toggle('active', matches);
+        if (matches) matchedPreset = true;
+    });
+
+    var useCustom = preferCustom || !matchedPreset;
+    document.getElementById('filter-volume-custom-pill').classList.toggle('active', useCustom);
+    setCustomVolumeVisibility(useCustom);
+    document.getElementById('filter-volume-custom-input').value =
+        useCustom ? String(value) : '';
+}
+
+function applyCustomVolumeFilter() {
+    var input = document.getElementById('filter-volume-custom-input');
+    var value = parseFloat(input.value);
+    if (!Number.isFinite(value) || value < 0) {
+        input.setCustomValidity('Enter a minimum volume of 0 barrels or greater.');
+        input.reportValidity();
+        return;
+    }
+    input.setCustomValidity('');
+    if (
+        spillFilters.minBbls === value &&
+        document.getElementById('filter-volume-custom-pill').classList.contains('active')
+    ) {
+        return;
+    }
+    spillFilters.minBbls = value;
+    selectVolumeFilterControl(value, true);
+    resetSpillTimelapse();
+    applySpillFilters();
+}
+
 // Minimum volume pills (single-select)
-document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (pill) {
+document.querySelectorAll('#filter-volume-pills .filter-pill[data-min-bbls]').forEach(function (pill) {
     pill.addEventListener('click', function () {
-        document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p) {
-            p.classList.remove('active');
-        });
-        pill.classList.add('active');
         spillFilters.minBbls = parseFloat(pill.dataset.minBbls) || 0;
+        selectVolumeFilterControl(spillFilters.minBbls, false);
         resetSpillTimelapse();
         applySpillFilters();
     });
+});
+
+document.getElementById('filter-volume-custom-pill').addEventListener('click', function () {
+    selectVolumeFilterControl(spillFilters.minBbls, true);
+    var input = document.getElementById('filter-volume-custom-input');
+    input.focus();
+    input.select();
+});
+document.getElementById('filter-volume-custom-apply').addEventListener('click', applyCustomVolumeFilter);
+document.getElementById('filter-volume-custom-input').addEventListener('change', applyCustomVolumeFilter);
+document.getElementById('filter-volume-custom-input').addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        applyCustomVolumeFilter();
+    }
+});
+document.getElementById('filter-volume-custom-input').addEventListener('input', function () {
+    this.setCustomValidity('');
 });
 
 // Reset
@@ -773,9 +1152,7 @@ document.getElementById('spill-filters-reset').addEventListener('click', functio
     document.getElementById('filter-commodity').value = 'ALL';
     document.getElementById('filter-cause').value = 'ALL';
     document.getElementById('filter-state').value = 'ALL';
-    document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (p, i) {
-        p.classList.toggle('active', i === 0);
-    });
+    selectVolumeFilterControl(0, false);
     resetSpillTimelapse();
     applySpillFilters();
 });
@@ -1117,18 +1494,13 @@ function applyOpisShareState() {
     spillFilters.commodity = params.get('commodity') || 'ALL';
     spillFilters.cause = params.get('cause') || 'ALL';
     spillFilters.state = sharedState || 'ALL';
-    spillFilters.minBbls = parseFloat(params.get('min')) || 0;
+    spillFilters.minBbls = Math.max(0, parseFloat(params.get('min')) || 0);
     document.getElementById('filter-date-start').value = spillFilters.dateStart || '';
     document.getElementById('filter-date-end').value = spillFilters.dateEnd || '';
     document.getElementById('filter-commodity').value = spillFilters.commodity;
     document.getElementById('filter-cause').value = spillFilters.cause;
     document.getElementById('filter-state').value = spillFilters.state;
-    document.querySelectorAll('#filter-volume-pills .filter-pill').forEach(function (pill) {
-        pill.classList.toggle(
-            'active',
-            (parseFloat(pill.dataset.minBbls) || 0) === spillFilters.minBbls
-        );
-    });
+    selectVolumeFilterControl(spillFilters.minBbls, false);
 
     resetSpillTimelapse();
     applySpillFilters();

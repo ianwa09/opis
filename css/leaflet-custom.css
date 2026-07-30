@@ -57,3 +57,10 @@ overflow-wrap: break-word;
     height: 34px;
     line-height: 34px;
 }
+
+/* Keep drawn analysis boundaries clickable in Geoman removal mode. Data
+   paths may otherwise sit above them and some browsers retain an edit cursor. */
+.leaflet-container.opis-removal-mode .opis-drawn-boundary {
+    cursor: pointer !important;
+    pointer-events: auto;
+}
