@@ -17,7 +17,7 @@ var tutorialSteps = [
     {
         icon: 'bi-lightning-charge',
         title: 'Run a Spill Cost Simulation',
-        body: '<strong>Select the Crude Oil layer, then click any pipeline on the map</strong> to open the Spill Cost Simulator. The simulator is calibrated to crude oil incidents only, using PHMSA data from 2015 to 2024.<br><br>Adjust release volume, location type, and environmental risk factors to estimate total incident costs, broken down by category.'
+        body: '<strong>Select the Crude Oil layer, then click any pipeline on the map</strong> to open the Spill Cost Simulator. The simulator is calibrated to crude oil incidents only, using PHMSA data from 2010 through 2024 and held-out 2025 incidents for evaluation.<br><br>Adjust release volume, incident area, and environmental risk factors to estimate total incident costs, broken down by category.'
     },
     {
         icon: 'bi-exclamation-circle',
@@ -97,6 +97,10 @@ function closeAllModals() {
     openBackdrops.forEach(function (backdrop) {
         backdrop.classList.remove('open');
     });
+    var instructionBanner = document.getElementById('instruction-banner');
+    if (instructionBanner) {
+        instructionBanner.classList.remove('modal-obscured');
+    }
 
     // Optional: Reset tutorial step back to 0 if it was closed
     if (typeof currentStep !== 'undefined') {
@@ -251,7 +255,7 @@ document.body.insertAdjacentHTML('beforeend', `
                 <li>POL (Petroleum, Oil, and Lubricants) Terminals (ICPSR 239798)</li>
             </ul>
         </li>
-        <li><strong>ArcGIS Hub (Esri Federal Datasets):</strong> Crude oil pipeline geometry from U.S. Energy Information Administration (EIA) data hosted through Esri's public dataset hub. See Appendix B for the source link.</li>
+        <li><strong>ArcGIS Hub (Esri Federal Datasets):</strong> Crude oil pipeline geometry from U.S. Energy Information Administration (EIA) data hosted through Esri's public dataset hub. The associated federal service identifies the source layer as <code>CrudeOil_Pipelines_US_202001</code>. See Appendix B for the source link.</li>
     </ul>
     <p><strong>Processing and display:</strong> The archived source files are stored as GeoJSON snapshots and embedded in the application for display with Leaflet. The map does not request live pipeline data from an agency server when it loads. Line features are displayed as pipeline or underwater-infrastructure segments, while terminal datasets are displayed as facility points. A line feature generally represents a source-dataset segment rather than an entire pipeline system, and features without usable geometry cannot be drawn.</p>
     <ul>
@@ -276,19 +280,31 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <div class="meth-section">
     <div class="meth-section-title">3. Spill Cost Simulation Model</div>
-    <p><strong>Training data and outcome:</strong> The cost model was developed from PHMSA crude oil incident records covering 2015 through 2024. The modeled outcome is <code>log1p</code>-transformed total incident cost in 2024 dollars.</p>
+    <p><strong>Training data and outcome:</strong> The hybrid simulator contains two ridge-regression variants fitted on 2,815 PHMSA crude oil incidents from 2010 through 2024. The modeled outcome is <code>log1p</code>-transformed total incident cost in 2025 dollars. Both variants can use automatically detected 2024 American Community Survey tract context.</p>
     <ul>
         <li>Total incident cost is calculated by summing <code>EST_COST_OPER_PAID</code>, <code>EST_COST_PROP_DAMAGE</code>, <code>EST_COST_EMERGENCY</code>, <code>EST_COST_ENVIRONMENTAL</code>, and <code>EST_COST_OTHER</code>.</li>
-        <li>Equipment age is calculated as incident year minus installation year.</li>
-        <li>Historical costs are converted to 2024 dollars using annual inflation-adjustment factors. Records with adjusted costs below $100 or missing equipment age are excluded, followed by incidents above the 97th percentile of adjusted cost.</li>
-        <li>Release volume and adjusted cost are transformed with <code>log1p</code>. Missing or unrecognized values in five binary indicator fields are converted to zero.</li>
-        <li>Location type, incident area type, pipeline facility type, and state are one-hot encoded. A 50-tree random forest with five-fold RFECV selects predictors using R-squared, after which an OLS model is fitted on the selected columns.</li>
+        <li>Records are included when all five cost components are present and their sum is positive. Extreme high-cost incidents are retained.</li>
+        <li>Historical costs are converted to 2025 dollars using annual CPI-U averages from Bureau of Labor Statistics series <code>CUUR0000SA0</code>.</li>
+        <li>Release volume is transformed with <code>log1p</code>. Both deployed variants also use water-crossing, water-contamination, and surface-water-remediation indicators.</li>
+        <li>Pipeline facility type, incident area type, and state are one-hot encoded. Rare state categories are grouped during fitting. Equipment age, cause, incident material, and exact segment diameter remain excluded because the map interaction cannot reliably supply them.</li>
+        <li>Census features are tract population density, housing density, and median household income. Density and income values are transformed with <code>log1p</code>, and missing-value indicators distinguish unmatched locations from observed low values.</li>
+        <li>PHMSA's reported high-population-area indicator is excluded from the deployed models. It is not inferred from Census density because the two fields do not use the same definition, and it cannot be established reliably from a pipeline click.</li>
+        <li>Ridge, random forest, extra trees, gradient boosting, and histogram gradient boosting candidates were trained through 2022 and compared on 2023 incidents. Nonlinear models were also evaluated in rolling forward-year tests. Ridge regression with an alpha of 100 was retained for the browser because its performance was competitive and more stable across the tested years.</li>
     </ul>
-    <p><strong>Model summary:</strong> The final model uses approximately 2,400 incidents and has an adjusted R-squared of approximately 0.61.</p>
-    <p><strong>Equipment age:</strong> All simulations use 50 years as a fixed input to keep estimates comparable across pipeline segments. The application does not read or estimate the actual installation age of the selected pipeline.</p>
+    <p><strong>Automatic geographic context:</strong> Crude pipeline routes are sampled at approximately 2 kilometer spacing and joined to 2024 ACS 5-year tract data. A pipeline click uses the nearest sample within 5 kilometers. The simulator displays population density, housing density, median household income, and the source tract. The source tract geometry is not downloaded by the visitor.</p>
+    <p><strong>Water proximity:</strong> The clicked coordinate is queried against USGS NHDPlus High Resolution flowline and waterbody layers within 10 kilometers. Mapped pipeline features in NHD are excluded from the water query. Water proximity is displayed for context, but it is not currently a cost-model feature because adding the tested hydrography variables did not improve pooled forward-year error.</p>
+    <p><strong>Operator-informed variant:</strong> A reviewed crosswalk links 22 labels in the 2020-era crude pipeline layer to unique PHMSA Operator IDs. These labels cover 112 of the layer's 236 displayed features. When a clicked operator is supported, the simulator also uses prior-year operator incident history and the 2024 PHMSA Hazardous Liquid Annual Report.</p>
     <ul>
-        <li>The displayed interval applies the same fixed log-scale error value of 0.078 to every scenario. It is an approximate uncertainty range, not a scenario-specific confidence interval or an individual-incident prediction range.</li>
-        <li>The result is a back-transformed log-scale model estimate. Real-world costs can vary significantly, and the deployed calculation does not apply a retransformation or smearing correction.</li>
+        <li>Operator-history features use only incidents from earlier calendar years during model development. The production values summarize usable crude oil incidents through 2024.</li>
+        <li>Annual-report features include operator crude-system mileage and state-level mileage, installation-period distribution, and diameter distribution. These describe an operator's reported state system, not the exact clicked segment.</li>
+        <li>If a supported operator has no matching operator-state annual-report row, the training medians and missing-value indicators are used. If the map operator has no reviewed OpID match, the simulator automatically uses the Census-informed fallback model.</li>
+    </ul>
+    <p><strong>Held-out evaluation:</strong> After the model specification was selected, 2024 incidents were used to calibrate uncertainty and 136 previously unused 2025 crude oil incidents were used for final evaluation. The Census-informed fallback production refit has a 2025 log-scale R-squared of 0.586, log-scale mean absolute error of 1.048, and median absolute dollar error of approximately $24,452. The operator, annual-report, and Census model has an all-incident log-scale R-squared of 0.592 and log-scale mean absolute error of 1.040. Among the 39 held-out incidents belonging to crosswalk-supported operators, that model has a log-scale R-squared of 0.647, log-scale mean absolute error of 0.917, and median absolute error of approximately $25,884.</p>
+    <ul>
+        <li>Both typical-cost confidence intervals use 500 paired bootstrap ridge refits. The Census fallback uses the maximum fitted-row log standard error. The operator-informed variant uses the larger of the maximum fitted-row standard error and the maximum across a 292,864-scenario interface grid.</li>
+        <li>The displayed 95% individual-incident prediction interval uses a split-conformal absolute-residual radius calibrated on 2024 incidents. The Census fallback log radius is 3.0855 and the operator-informed log radius is 3.3801.</li>
+        <li>The point result is the back-transformed log-scale estimate and should be interpreted as a typical conditional cost, not a guaranteed bill or an estimate of spill probability.</li>
+        <li>PHMSA incident area categories are aboveground, underground, tank, and transition area. Water crossing is modeled separately. The training field contains interstate and intrastate facilities, but no gathering-line category.</li>
     </ul>
     </div>
 
@@ -307,26 +323,30 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <div class="meth-section">
     <div class="meth-section-title">5. Geographic State Detection</div>
-    <p>Pipeline click coordinates are matched to a state using bounding-box logic covering all 50 states. Because state boxes overlap and the first match is used, segments near state borders may be assigned to the wrong state. The deployed model then applies a hard-coded state adjustment. Spill-history filtering uses <code>us-atlas</code> state polygons with the same bounding boxes as a fallback.</p>
+    <p>Pipeline click coordinates are matched to a state using bounding-box logic covering all 50 states. Because state boxes overlap and the first match is used, segments near state borders may be assigned to the wrong state. The deployed model then applies the fitted one-hot term for that detected state when one is available. Spill-history filtering uses <code>us-atlas</code> state polygons with the same bounding boxes as a fallback.</p>
     </div>
 
     <div class="meth-section">
     <span class="appendix-label">Appendix A</span>
-    <div class="meth-section-title" style="margin-top:6px">OLS Regression Coefficients</div>
-    <p>The simulator uses the following log-scale model constants:</p>
+    <div class="meth-section-title" style="margin-top:6px">Deployed Hybrid Model Specification</div>
+    <p>The simulator evaluates both fitted ridge models directly in the browser. Numeric variables are median-imputed when unavailable, missingness is encoded where supported by the fitted preprocessing pipeline, and numeric inputs are standardized using the production training data.</p>
     <table class="meth-table">
-        <tr><th>Variable</th><th>Coefficient</th><th>Interpretation</th></tr>
-        <tr><td>Intercept</td><td>9.42</td><td>Baseline cost approx. $12,300</td></tr>
-        <tr><td>Equipment Age (per yr)</td><td>0.0118</td><td>Fixed at 50 yrs (adds about 80% vs. new)</td></tr>
-        <tr><td>Log Release Volume</td><td>0.847</td><td>Primary cost driver</td></tr>
-        <tr><td>High Population Area</td><td>0.542</td><td>Adds roughly 72% to cost</td></tr>
-        <tr><td>Water Contamination</td><td>0.793</td><td>Adds roughly 121% to cost</td></tr>
-        <tr><td>Surface Remediation</td><td>0.618</td><td>Adds roughly 86% to cost</td></tr>
-        <tr><td>Water Body Crossing</td><td>0.312</td><td>Adds roughly 37% to cost</td></tr>
-        <tr><td>Above Ground Location</td><td>-0.287</td><td>About 25% cheaper than below ground</td></tr>
-        <tr><td>Underwater Location</td><td>0.445</td><td>Adds roughly 56% to cost</td></tr>
-        <tr><td>Interstate Pipeline</td><td>0.148</td><td>Adds roughly 16% for regulatory burden</td></tr>
-        <tr><td>Fixed log-scale interval error</td><td>0.078</td><td>Applied to every scenario's approximate interval</td></tr>
+        <tr><th>Feature group</th><th>Implementation</th></tr>
+        <tr><td>Scenario severity</td><td><code>log1p</code> barrels released</td></tr>
+        <tr><td>Selected conditions</td><td>Water-crossing, water-contamination, and surface-water-remediation indicators</td></tr>
+        <tr><td>Facility and incident area</td><td>Interstate or intrastate facility and PHMSA incident-area one-hot terms</td></tr>
+        <tr><td>State</td><td>One-hot term from the detected state</td></tr>
+        <tr><td>Census context</td><td>2024 ACS tract population density, housing density, median household income, and match indicator</td></tr>
+        <tr><td>Typical-cost confidence log radius</td><td>0.7963 for the Census-informed fallback</td></tr>
+        <tr><td>Individual prediction interval log radius</td><td>3.0855 for the Census-informed fallback</td></tr>
+    </table>
+    <table class="meth-table" style="margin-top:12px">
+        <tr><th>Operator-informed addition</th><th>Implementation</th></tr>
+        <tr><td>Operator identity</td><td>Reviewed map-label crosswalk to PHMSA OpID</td></tr>
+        <tr><td>Prior operator history</td><td>Earlier-year usable incident count and smoothed mean log cost and release volume</td></tr>
+        <tr><td>Annual system context</td><td>2024 operator and state crude mileage, installation-period distribution, and diameter distribution</td></tr>
+        <tr><td>Typical-cost confidence log radius</td><td>1.1642, based on the maximum bootstrap standard error over fitted rows and the supported interface grid</td></tr>
+        <tr><td>Individual prediction interval log radius</td><td>3.3801, split-conformal calibration on 2024 residuals</td></tr>
     </table>
     </div>
 
@@ -335,9 +355,13 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="meth-section-title" style="margin-top:6px">Data Sources</div>
     <ul>
         <li>PHMSA Incident Data: phmsa.dot.gov/data-and-statistics/pipeline/pipeline-incident-flagged-files</li>
+        <li>PHMSA Hazardous Liquid Annual Report Data: phmsa.dot.gov/data-and-statistics/pipeline/gas-distribution-gas-gathering-gas-transmission-hazardous-liquids</li>
+        <li>PHMSA Pipeline Operator IDs: phmsa.dot.gov/data-and-statistics/pipeline/pipeline-operators-opids</li>
         <li>DataLumos archived HIFLD datasets: ICPSR 240657, 240796, 239743, 239260, 240798, and 239798</li>
         <li>EIA Crude Oil Pipeline Data: hub.arcgis.com/datasets/bb2aee97117d403ea63bcfe6be4a12c8_0</li>
         <li>CPI Inflation Adjustment: bls.gov/cpi (Series CUUR0000SA0)</li>
+        <li>2024 American Community Survey 5-year detailed tables B01003, B19013, and B25001, with 2024 Census cartographic tract boundaries</li>
+        <li>USGS National Hydrography Dataset Plus High Resolution flowline and waterbody map services</li>
         <li>Spill state polygons: us-atlas version 3; pipeline and fallback state detection: bounding boxes embedded in the application</li>
     </ul>
     </div>
@@ -347,13 +371,18 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="meth-section-title" style="margin-top:6px">Limitations and Disclaimers</div>
     <ul>
         <li>This tool is for informational and planning purposes only. It is not engineering, legal, or regulatory advice.</li>
-        <li>Spill cost estimates carry real uncertainty. Individual incidents can cost significantly more or less than what the model predicts.</li>
-        <li>The displayed interval uses a fixed standard error and should not be interpreted as a scenario-specific prediction interval.</li>
+        <li>Spill cost estimates carry substantial uncertainty. The calibrated interval is intentionally wide because individual incidents with similar selected characteristics can have very different costs.</li>
+        <li>The bootstrap confidence interval measures sampling uncertainty in the fitted typical-cost estimate. It does not capture every source of model-specification uncertainty or future data drift.</li>
+        <li>Observed 2025 interval coverage does not guarantee the same coverage for future incidents or unusual scenarios.</li>
         <li>Pipeline location data reflects publicly available federal filings and may not capture recent route changes, abandonments, or new construction.</li>
-        <li>The 50-year equipment age input may not match the actual installation date of any specific pipeline segment.</li>
         <li>The model is calibrated to crude oil incidents and should not be interpreted as a cost model for other pipeline commodities.</li>
-        <li>Excluding incidents below $100 and above the 97th percentile limits how well the model represents extremely small or exceptionally costly incidents.</li>
-        <li>Feature selection and the final OLS fit use the same encoded dataset. The reported adjusted R-squared is an in-sample measure rather than a held-out performance estimate.</li>
+        <li>The PHMSA facility field used for training contains no gathering-line category. The simulator therefore does not provide a gathering-line estimate.</li>
+        <li>The operator-informed variant uses operator-level history and annual system summaries only for reviewed OpID matches. It does not know the exact clicked segment's age, diameter, material, pressure, maintenance history, or operating conditions.</li>
+        <li>The crosswalk covers 112 of 236 crude pipeline features. Unsupported operators use the Census-informed fallback model, so otherwise identical scenarios can use different model variants depending on crosswalk availability.</li>
+        <li>The 2024 ACS values are a fixed cross-sectional location snapshot, not a reconstruction of demographic conditions on each historical incident date. The nearest 2 kilometer route sample can also assign the adjacent tract near a tract boundary.</li>
+        <li>The generalized tract layer does not match every offshore or coastal route sample. Census fields are imputed when the clicked point has no usable match.</li>
+        <li>USGS water proximity depends on availability of the public map service and is not intended for site-specific engineering or regulatory determinations. It is displayed as context and is not used to adjust the deployed cost estimate.</li>
+        <li>Water contamination and remediation are post-incident scenario conditions. Selecting them estimates cost conditional on those outcomes; the model does not predict whether they will occur.</li>
         <li>Missing or unrecognized binary indicator values are treated as zero, which may conflate unknown values with reported negative responses.</li>
         <li>Fixed cost-category shares and state adjustments simplify variation that may differ across individual incidents.</li>
     </ul>
@@ -1577,7 +1606,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="sim-modal">
 <div class="sim-header">
     <h3>Spill Cost Simulator</h3>
-    <div class="sim-subhead">OLS Regression Model: 2015&ndash;2024 PHMSA Data</div>
+    <div class="sim-subhead">Hybrid Conditional Ridge Model: 2010 through 2024 PHMSA Data</div>
     <button class="sim-close" id="sim-close-btn">&#x2715;</button>
 </div>
 <div class="sim-body">
@@ -1598,6 +1627,17 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
     </div>
 
+    <div class="sim-location-context">
+        <p class="sim-section-label">Automatically Detected Location Context</p>
+        <div class="context-grid">
+            <div><span>Population density</span><strong id="sim-context-pop">Checking</strong></div>
+            <div><span>Housing density</span><strong id="sim-context-housing">Checking</strong></div>
+            <div><span>Median household income</span><strong id="sim-context-income">Checking</strong></div>
+            <div><span>Nearest mapped water</span><strong id="sim-context-water">Checking</strong></div>
+        </div>
+        <div class="context-source" id="sim-context-source"></div>
+    </div>
+
     <!-- Section: Scenario Inputs -->
     <div class="sim-section">
     <p class="sim-section-label">Scenario Parameters</p>
@@ -1609,22 +1649,18 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <p class="sim-section-label" style="margin-top:10px">Facility &amp; Location</p>
     <select id="sim-facility">
-        <option value="interstate">Interstate Pipeline</option>
-        <option value="intrastate">Intrastate Pipeline</option>
-        <option value="gathering">Gathering Line</option>
+        <option value="INTERSTATE">Interstate Pipeline</option>
+        <option value="INTRASTATE">Intrastate Pipeline</option>
     </select>
     <select id="sim-area">
-        <option value="belowground">Below Ground</option>
-        <option value="aboveground">Above Ground</option>
-        <option value="underwater">Underwater / Crossing</option>
+        <option value="UNDERGROUND">Underground Incident Area</option>
+        <option value="ABOVEGROUND">Aboveground Incident Area</option>
+        <option value="TANK, INCLUDING ATTACHED APPURTENANCES">Tank or Attached Appurtenances</option>
+        <option value="TRANSITION AREA">Transition Area</option>
     </select>
 
     <p class="sim-section-label" style="margin-top:10px">Risk Factors</p>
     <div class="check-grid">
-        <label class="check-item">
-        <input type="checkbox" id="sim-hipop">
-        <span>High-density population area</span>
-        </label>
         <label class="check-item">
         <input type="checkbox" id="sim-water">
         <span>Water contamination occurred</span>
@@ -1645,9 +1681,17 @@ document.body.insertAdjacentHTML('beforeend', `
     <!-- Results -->
     <div id="sim-results">
     <div class="result-main">
-        <div class="result-label">Estimated Cost (2024 USD)</div>
+        <div class="result-label">Estimated Typical Cost (2025 USD)</div>
         <div class="result-cost" id="res-cost">Not calculated</div>
-        <div class="result-ci" id="res-ci">Approximate 95% Interval: <strong>Not calculated</strong></div>
+        <div class="result-ci">
+            95% Confidence Interval for Typical Cost:
+            <strong id="res-confidence">Not calculated</strong>
+        </div>
+        <div class="result-ci">
+            95% Prediction Interval for One Incident:
+            <strong id="res-prediction">Not calculated</strong>
+        </div>
+        <div class="result-model-source" id="res-model-source"></div>
     </div>
 
     <p class="breakdown-title">Estimated Cost Breakdown</p>
@@ -1657,12 +1701,17 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="drivers-row" id="res-drivers"></div>
 
     <p class="sim-disclaimer">
-        This simulation uses an OLS regression model trained on 2015&ndash;2024 PHMSA
-        crude oil incident reports, inflation-adjusted to 2024 USD. Results
-        provide a back-transformed log-scale estimate for incidents with similar
-        characteristics: not a guarantee. The approximate interval applies the
-        same fixed log-scale standard error to every scenario and is not an
-        individual-incident prediction range.
+        These conditional models were fitted on 2010 through 2024 PHMSA
+        crude oil incident reports and evaluated on held-out 2025 incidents. A
+        reviewed operator match adds prior operator history and PHMSA annual-report
+        context. Automatically detected Census context is used when available.
+        USGS water proximity is displayed as location information but does not
+        adjust the estimate because it did not improve forward-year validation.
+        The point estimate represents
+        a typical modeled cost for the selected conditions. The confidence interval
+        describes uncertainty in that typical estimate. The much wider prediction
+        interval describes the possible cost of one incident. Neither interval is
+        a guarantee.
     </p>
     </div>
 
@@ -1670,36 +1719,6 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>
 </div>
 `);
-
-// Embedded OLS Regression Model:
-// Coefficients derived from PHMSA crude oil incident data (2015-2024)
-// Dependent variable: log1p(ADJUSTED_COST)
-// R-squared_adj ~ 0.61, N ~ 2,400 incidents
-var OLS = {
-    intercept: 9.42,   // baseline ~$12,300
-    age: 0.0118, // per year of equipment age
-    log_bbls: 0.847,  // primary volume driver
-    high_pop: 0.542,  // high pop area premium
-    water_contam: 0.793,  // water contamination cost
-    surface_remed: 0.618,  // surface remediation cost
-    water_crossing: 0.312,  // crossing multiplier
-    aboveground: -0.287,  // above ground cheaper to remediate
-    underwater: 0.445,  // underwater incidents more expensive
-    interstate: 0.148,  // interstate regulatory burden
-    intrastate: 0.045,  // intrastate (moderate)
-    // gathering: 0 (reference category)
-    se_mean: 0.078,  // fixed log-scale error used for the approximate interval
-    // State fixed effects (relative to national mean = 0)
-    states: {
-        AL: -0.15, AK: 0.45, AZ: 0.10, AR: -0.20, CA: 0.55, CO: 0.20, CT: 0.35,
-        DE: 0.30, FL: 0.25, GA: -0.10, HI: 0.50, ID: 0.05, IL: 0.15, IN: -0.05,
-        IA: -0.10, KS: -0.20, KY: -0.15, LA: 0.10, ME: 0.20, MD: 0.40, MA: 0.45,
-        MI: 0.10, MN: 0.15, MS: -0.20, MO: -0.10, MT: 0.05, NE: -0.15, NV: 0.15,
-        NH: 0.30, NJ: 0.50, NM: 0.00, NY: 0.55, NC: -0.05, ND: -0.05, OH: 0.05,
-        OK: -0.25, OR: 0.25, PA: 0.20, RI: 0.35, SC: -0.10, SD: -0.10, TN: -0.10,
-        TX: -0.10, UT: 0.10, VT: 0.25, VA: 0.15, WA: 0.30, WV: -0.05, WI: 0.10, WY: 0.05
-    }
-};
 
 // Cost breakdown proportions (from PHMSA cost category analysis)
 var COST_SPLIT = {
@@ -1854,22 +1873,117 @@ function populateStateFilterOptions() {
 // Simulator state 
 var simState = null; // detected 2-letter state code
 var simClickLatLng = null;
+var simOperatorName = null;
+var simCensusContext = null;
+var simHydroContext = null;
+
+function setSimulatorOpen(isOpen) {
+    document.getElementById('sim-backdrop').classList.toggle('open', isOpen);
+    var instructionBanner = document.getElementById('instruction-banner');
+    if (instructionBanner) {
+        instructionBanner.classList.toggle('modal-obscured', isOpen);
+    }
+}
+
+function formatContextNumber(value, maximumFractionDigits) {
+    if (!Number.isFinite(value)) return 'Unavailable';
+    return value.toLocaleString(undefined, {
+        maximumFractionDigits: maximumFractionDigits
+    });
+}
+
+function renderLocationContext() {
+    var population = document.getElementById('sim-context-pop');
+    var housing = document.getElementById('sim-context-housing');
+    var income = document.getElementById('sim-context-income');
+    var water = document.getElementById('sim-context-water');
+    var source = document.getElementById('sim-context-source');
+
+    if (simCensusContext) {
+        population.textContent = formatContextNumber(
+            simCensusContext.populationDensityPerSqKm,
+            0
+        ) + ' people/km²';
+        housing.textContent = formatContextNumber(
+            simCensusContext.housingDensityPerSqKm,
+            0
+        ) + ' units/km²';
+        income.textContent = '$' + formatContextNumber(
+            simCensusContext.medianHouseholdIncome,
+            0
+        );
+        source.textContent =
+            simCensusContext.sourceVintage + ', tract ' +
+            simCensusContext.tractGeoid +
+            '. Values are assigned from the nearest 2 km pipeline sample.';
+    } else {
+        population.textContent = 'Unavailable';
+        housing.textContent = 'Unavailable';
+        income.textContent = 'Unavailable';
+        source.textContent =
+            'No matching Census tract was available near this pipeline point.';
+    }
+
+    if (simHydroContext === null) {
+        water.textContent = 'Checking USGS...';
+    } else if (simHydroContext.matched) {
+        var distance = simHydroContext.nearestWaterKm;
+        water.textContent = distance < 0.1
+            ? 'Within 100 m'
+            : distance.toFixed(distance < 1 ? 2 : 1) + ' km';
+    } else {
+        water.textContent = 'Unavailable';
+    }
+}
 
 // Open simulator
 function openSimulator(props, latlng) {
     simClickLatLng = latlng;
     simState = props._state || detectState(latlng.lat, latlng.lng);
+    simOperatorName = props.Opername || props.opername || 'Unknown';
+    simCensusContext = window.OPISLocationContext.lookupCensus(
+        latlng.lat,
+        latlng.lng
+    );
+    simHydroContext = null;
 
     document.getElementById('sim-pipename').textContent =
         (props.Pipename || props.pipename || 'Unknown');
     document.getElementById('sim-opername').textContent =
-        (props.Opername || props.opername || 'Unknown');
+        simOperatorName;
     document.getElementById('sim-state-display').textContent =
-        simState + ' (detected from coordinates)';
+        simState
+            ? simState + ' (detected from coordinates)'
+            : 'Unknown (no state effect applied)';
+    renderLocationContext();
+    var contextRequestLat = latlng.lat;
+    var contextRequestLng = latlng.lng;
+    window.OPISLocationContext.fetchHydro(
+        contextRequestLat,
+        contextRequestLng
+    ).then(function (context) {
+        if (
+            simClickLatLng
+            && simClickLatLng.lat === contextRequestLat
+            && simClickLatLng.lng === contextRequestLng
+        ) {
+            simHydroContext = context;
+            renderLocationContext();
+        }
+    });
+
+    var reportedFacility = String(
+        props.typepipe || props.Typepipe || props.TYPEPIPE || ''
+    ).toUpperCase();
+    if (reportedFacility === 'INTERSTATE' || reportedFacility === 'INTRASTATE') {
+        document.getElementById('sim-facility').value = reportedFacility;
+    } else {
+        document.getElementById('sim-facility').value = 'INTERSTATE';
+    }
 
     // Reset results
     document.getElementById('sim-results').classList.remove('visible');
-    document.getElementById('sim-backdrop').classList.add('open');
+    setSimulatorOpen(true);
 
     gtag('event', 'run_simulation', {
         'pipeline_operator': props.opername || props.Opername || 'Unknown',
@@ -1879,10 +1993,10 @@ function openSimulator(props, latlng) {
 
 // Close simulator  
 document.getElementById('sim-close-btn').addEventListener('click', function () {
-    document.getElementById('sim-backdrop').classList.remove('open');
+    setSimulatorOpen(false);
 });
 document.getElementById('sim-backdrop').addEventListener('click', function (e) {
-    if (e.target === this) this.classList.remove('open');
+    if (e.target === this) setSimulatorOpen(false);
 });
 
 // Slider live readouts 
@@ -1892,36 +2006,41 @@ document.getElementById('sim-bbls').addEventListener('input', function () {
 
 // Run simulation 
 document.getElementById('sim-run-btn').addEventListener('click', function () {
-    var age = 50; // Hardcoded: 50-year equipment age baseline
     var bbls = parseFloat(document.getElementById('sim-bbls').value);
-    var hipop = document.getElementById('sim-hipop').checked ? 1 : 0;
     var water = document.getElementById('sim-water').checked ? 1 : 0;
     var remed = document.getElementById('sim-remed').checked ? 1 : 0;
     var wcross = document.getElementById('sim-wcross').checked ? 1 : 0;
     var facility = document.getElementById('sim-facility').value;
     var area = document.getElementById('sim-area').value;
-    var state = simState || 'TX';
+    var state = simState || 'UNKNOWN';
 
-    var logBbls = Math.log1p(bbls);
-
-    // Linear combination (OLS on log scale)
-    var linPred = OLS.intercept
-        + OLS.age * age
-        + OLS.log_bbls * logBbls
-        + OLS.high_pop * hipop
-        + OLS.water_contam * water
-        + OLS.surface_remed * remed
-        + OLS.water_crossing * wcross
-        + (area === 'aboveground' ? OLS.aboveground : 0)
-        + (area === 'underwater' ? OLS.underwater : 0)
-        + (facility === 'interstate' ? OLS.interstate : 0)
-        + (facility === 'intrastate' ? OLS.intrastate : 0)
-        + (OLS.states[state] || 0);
-
-    // Back-transform from log scale
-    var predCost = Math.expm1(linPred);
-    var lowerMean = Math.expm1(linPred - 1.96 * OLS.se_mean);
-    var upperMean = Math.expm1(linPred + 1.96 * OLS.se_mean);
+    var modelInput = {
+        releaseBbls: bbls,
+        waterContamination: water,
+        surfaceWaterRemediation: remed,
+        waterCrossing: wcross,
+        facility: facility,
+        incidentArea: area,
+        state: state,
+        operatorName: simOperatorName,
+        censusContextMatched: Boolean(simCensusContext),
+        censusPopulationDensityLog: simCensusContext
+            ? simCensusContext.populationDensityLog
+            : null,
+        censusHousingDensityLog: simCensusContext
+            ? simCensusContext.housingDensityLog
+            : null,
+        censusMedianHouseholdIncomeLog: simCensusContext
+            ? simCensusContext.medianHouseholdIncomeLog
+            : null
+    };
+    var prediction = window.OPISOperatorCostModel.predict(modelInput);
+    if (!prediction) {
+        prediction = window.OPISCensusCostModel.predict(modelInput);
+    }
+    var predCost = prediction.cost2025Usd;
+    var lowerPrediction = prediction.lower95Usd;
+    var upperPrediction = prediction.upper95Usd;
 
     // Format currency 
     function fmt(v) {
@@ -1931,9 +2050,34 @@ document.getElementById('sim-run-btn').addEventListener('click', function () {
     }
 
     document.getElementById('res-cost').textContent = fmt(predCost);
-    document.getElementById('res-ci').innerHTML =
-        'Approximate 95% Interval: <strong>' +
-        fmt(lowerMean) + ' to ' + fmt(upperMean) + '</strong>';
+    document.getElementById('res-confidence').textContent =
+        fmt(prediction.typicalCostLower95Usd) + ' to ' +
+        fmt(prediction.typicalCostUpper95Usd);
+    document.getElementById('res-prediction').textContent =
+        fmt(lowerPrediction) + ' to ' + fmt(upperPrediction);
+    var modelSource = document.getElementById('res-model-source');
+    if (prediction.modelVariant === 'operator-informed') {
+        modelSource.textContent =
+            'Operator-informed model used (PHMSA OpID ' +
+            prediction.operatorOpid + '). Includes prior operator incident ' +
+            'history, 2024 PHMSA annual-report context, and automatically ' +
+            'detected Census context when available.' +
+            (prediction.annualStateMatched
+                ? ''
+                : ' State-specific annual fields were unavailable and imputed.');
+        modelSource.classList.add('operator-informed');
+    } else if (prediction.modelVariant === 'census-informed') {
+        modelSource.textContent =
+            'Census-informed model used. This operator does not yet have a ' +
+            'reviewed PHMSA OpID match, so operator history and annual-report ' +
+            'fields were not applied.';
+        modelSource.classList.remove('operator-informed');
+    } else {
+        modelSource.textContent =
+            'Fallback model used because Census and reviewed operator context ' +
+            'were unavailable for this point.';
+        modelSource.classList.remove('operator-informed');
+    }
 
     // Cost breakdown bars
     var breakdown = document.getElementById('res-breakdown');
@@ -1956,15 +2100,34 @@ document.getElementById('sim-run-btn').addEventListener('click', function () {
     var drivers = document.getElementById('res-drivers');
     drivers.innerHTML = '';
     var pills = [];
-    pills.push({ label: '50 yr equipment (baseline)', cls: 'med' });
     pills.push({ label: bbls + ' bbls released', cls: bbls > 200 ? 'high' : bbls > 50 ? 'med' : '' });
-    if (hipop) pills.push({ label: 'High population', cls: 'high' });
     if (water) pills.push({ label: 'Water contamination', cls: 'high' });
     if (remed) pills.push({ label: 'Surface remediation', cls: 'med' });
     if (wcross) pills.push({ label: 'Water crossing', cls: 'med' });
-    if (area === 'underwater') pills.push({ label: 'Underwater incident', cls: 'high' });
-    if (facility === 'interstate') pills.push({ label: 'Interstate', cls: '' });
-    pills.push({ label: 'State: ' + state, cls: (OLS.states[state] || 0) > 0.3 ? 'med' : '' });
+    pills.push({
+        label: document.getElementById('sim-area').selectedOptions[0].text,
+        cls: area === 'UNDERGROUND' ? 'med' : ''
+    });
+    pills.push({
+        label: facility === 'INTERSTATE' ? 'Interstate' : 'Intrastate',
+        cls: ''
+    });
+    pills.push({
+        label: 'State: ' + state,
+        cls: prediction.stateEffect > 0.3 ? 'med' : ''
+    });
+    if (prediction.modelVariant === 'operator-informed') {
+        pills.push({
+            label: 'Operator informed',
+            cls: 'med'
+        });
+    }
+    if (simCensusContext) {
+        pills.push({
+            label: 'Census context',
+            cls: ''
+        });
+    }
     pills.forEach(function (p) {
         var el = document.createElement('div');
         el.className = 'driver-pill ' + p.cls;
@@ -1973,7 +2136,6 @@ document.getElementById('sim-run-btn').addEventListener('click', function () {
     });
 
     document.getElementById('sim-results').classList.add('visible');
-document.getElementById('sim-results').classList.add('visible');
 });
 
 // barrel coloring gradient

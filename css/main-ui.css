@@ -603,6 +603,10 @@ white-space: nowrap;
 }
 #instruction-banner .banner-icon { font-size: 14px; color: #60a5fa; }
 #instruction-banner strong { color: #e0eaf5; }
+#instruction-banner.modal-obscured {
+opacity: 0;
+visibility: hidden;
+}
 
 /* Spill KPI bar (not in use) */ 
 #spill-kpi-bar {
@@ -1057,6 +1061,47 @@ min-width: 68px; flex-shrink: 0;
 }
 #sim-modal .sim-info-strip .info-val { color: #1a2533; font-weight: 500; }
 
+/* Automatically derived Census and USGS context */
+#sim-modal .sim-location-context {
+background: #f8fafc;
+border: 1px solid #e2e8f0;
+border-radius: 8px;
+padding: 11px 14px;
+margin-bottom: 16px;
+}
+#sim-modal .sim-location-context .sim-section-label {
+margin-bottom: 8px;
+}
+#sim-modal .context-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 7px 14px;
+}
+#sim-modal .context-grid div {
+min-width: 0;
+}
+#sim-modal .context-grid span {
+display: block;
+font-size: 9.5px;
+color: #94a3b8;
+margin-bottom: 2px;
+}
+#sim-modal .context-grid strong {
+display: block;
+font-size: 11.5px;
+font-weight: 650;
+color: #334155;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+#sim-modal .context-source {
+font-size: 9.5px;
+line-height: 1.4;
+color: #94a3b8;
+margin-top: 8px;
+}
+
 /* ── Form sections ── */
 #sim-modal .sim-section { margin-bottom: 14px; }
 #sim-modal .sim-section-label {
@@ -1166,7 +1211,21 @@ color: #1e3a8a; letter-spacing: -1px;
 #sim-results .result-ci {
 font-size: 11.5px; color: #64748b; margin-top: 5px;
 }
+#sim-results .result-ci + .result-ci { margin-top: 3px; }
 #sim-results .result-ci strong { color: #1e40af; }
+#sim-results .result-model-source {
+margin: 10px auto 0;
+padding-top: 9px;
+border-top: 1px solid #dbeafe;
+font-size: 10.5px;
+line-height: 1.45;
+color: #64748b;
+max-width: 520px;
+}
+#sim-results .result-model-source.operator-informed {
+color: #1d4ed8;
+font-weight: 600;
+}
 
 /* ── Cost breakdown bars ── */
 #sim-results .breakdown-title {
@@ -1393,6 +1452,9 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 }
 #chart-backdrop {
     z-index: 8800;
+}
+#sim-backdrop {
+    z-index: 9001;
 }
 
 @media (min-width: 768px) {
