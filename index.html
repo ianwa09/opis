@@ -972,6 +972,10 @@
             </div>
 
             <div id="ctrl-panel">
+              <button id="panel-resize-handle" type="button" role="separator"
+                aria-label="Resize Layers panel" aria-orientation="horizontal"
+                aria-valuemin="25" aria-valuemax="72" aria-valuenow="40"
+                title="Drag to resize the Layers panel"></button>
               <div class="panel-header">
                 <h2>Layers</h2>
               </div>
@@ -1146,6 +1150,66 @@
             `;
 
             document.body.insertAdjacentHTML('beforeend', panelHTML);
+
+            var panelResizeHandle = document.getElementById('panel-resize-handle');
+            var controlPanel = document.getElementById('ctrl-panel');
+            var panelResizeFrame = null;
+
+            function panelHeightLimits() {
+              return {
+                min: Math.max(180, window.innerHeight * 0.25),
+                max: Math.max(180, window.innerHeight * 0.72)
+              };
+            }
+
+            function setMobilePanelHeight(height) {
+              var limits = panelHeightLimits();
+              var nextHeight = Math.min(limits.max, Math.max(limits.min, height));
+              document.documentElement.style.setProperty('--mobile-panel-height', nextHeight + 'px');
+              panelResizeHandle.setAttribute('aria-valuenow', Math.round(nextHeight / window.innerHeight * 100));
+
+              if (!panelResizeFrame) {
+                panelResizeFrame = requestAnimationFrame(function () {
+                  panelResizeFrame = null;
+                  window.dispatchEvent(new Event('resize'));
+                });
+              }
+            }
+
+            panelResizeHandle.addEventListener('pointerdown', function (event) {
+              if (window.innerWidth > 767) return;
+              event.preventDefault();
+              panelResizeHandle.setPointerCapture(event.pointerId);
+              document.body.classList.add('resizing-mobile-panel');
+            });
+
+            panelResizeHandle.addEventListener('pointermove', function (event) {
+              if (!panelResizeHandle.hasPointerCapture(event.pointerId)) return;
+              setMobilePanelHeight(window.innerHeight - event.clientY);
+            });
+
+            function finishPanelResize(event) {
+              if (panelResizeHandle.hasPointerCapture(event.pointerId)) {
+                panelResizeHandle.releasePointerCapture(event.pointerId);
+              }
+              document.body.classList.remove('resizing-mobile-panel');
+            }
+
+            panelResizeHandle.addEventListener('pointerup', finishPanelResize);
+            panelResizeHandle.addEventListener('pointercancel', finishPanelResize);
+            panelResizeHandle.addEventListener('keydown', function (event) {
+              if (window.innerWidth > 767) return;
+              var limits = panelHeightLimits();
+              var currentHeight = controlPanel.getBoundingClientRect().height;
+              var nextHeight = null;
+              if (event.key === 'ArrowUp') nextHeight = currentHeight + 24;
+              if (event.key === 'ArrowDown') nextHeight = currentHeight - 24;
+              if (event.key === 'Home') nextHeight = limits.min;
+              if (event.key === 'End') nextHeight = limits.max;
+              if (nextHeight === null) return;
+              event.preventDefault();
+              setMobilePanelHeight(nextHeight);
+            });
             
             // instruction banner
             document.body.insertAdjacentHTML('beforeend', `

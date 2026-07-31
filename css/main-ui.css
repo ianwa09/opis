@@ -3,6 +3,10 @@ body, button, select, input {
 font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+:root {
+--mobile-panel-height: 40vh;
+}
+
 /* ── Top header bar (full-width, like CVI) ── */
 #top-header {
 position: fixed;
@@ -109,6 +113,9 @@ overflow-x: hidden;
 color: #1a2533;
 display: flex;
 flex-direction: column;
+}
+#panel-resize-handle {
+display: none;
 }
 
 /* ── Panel header ── */
@@ -1331,20 +1338,62 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     left: 0;
     bottom: 0;
     width: 100%;
-    height: 40vh; /* Takes up bottom 40% of the screen */
+    height: var(--mobile-panel-height);
     border-left: none;
     border-top: 1px solid #e2e8f0;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
   }
+  #panel-resize-handle {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    flex: 0 0 20px;
+    width: 100%;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: #fff;
+    cursor: ns-resize;
+    touch-action: none;
+  }
+  #panel-resize-handle::before {
+    content: '';
+    width: 44px;
+    height: 4px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background .15s, width .15s;
+  }
+  #panel-resize-handle:hover::before,
+  #panel-resize-handle:focus-visible::before,
+  body.resizing-mobile-panel #panel-resize-handle::before {
+    width: 54px;
+    background: #64748b;
+  }
+  body.resizing-mobile-panel {
+    cursor: ns-resize;
+    user-select: none;
+  }
+  #ctrl-panel .tab-row {
+    position: sticky;
+    top: 20px;
+    z-index: 2;
+    flex: 0 0 auto;
+    box-shadow: 0 1px 0 #e2e8f0;
+  }
 
   /* 3. Adjust Map view to compensate for the bottom panel area */
   .folium-map {
-    height: calc(60% - 52px) !important;
+    height: calc(100vh - 52px - var(--mobile-panel-height)) !important;
+    height: calc(100dvh - 52px - var(--mobile-panel-height)) !important;
   }
 
   /* 4. Fix Floating Elements overlapping the bottom sheet */
   #instruction-banner {
-    bottom: calc(40vh + 12px); /* Floats safely just above the control panel */
+    bottom: calc(var(--mobile-panel-height) + 12px);
     left: 50%;
     transform: translateX(-50%);
     width: 90vw;
@@ -1354,7 +1403,7 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
   }
 
   #map-toast {
-    bottom: calc(40vh + 12px);
+    bottom: calc(var(--mobile-panel-height) + 12px);
   }
 
   /* 5. Improve Grid elements inside the Spill Cost panel for small screens */
@@ -1435,14 +1484,8 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 
 /* Extra small phones */
 @media (max-width: 360px) {
-  #ctrl-panel {
-    height: 45vh;
-  }
-  .folium-map {
-    height: calc(55% - 52px) !important;
-  }
-  #instruction-banner, #map-toast {
-    bottom: calc(45vh + 10px);
+  :root {
+    --mobile-panel-height: 45vh;
   }
 }
 
@@ -1492,7 +1535,7 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     #sim-backdrop,
     .contact-backdrop {
         box-sizing: border-box;
-        padding: 52px 12px calc(40vh + 12px);
+        padding: 52px 12px calc(var(--mobile-panel-height) + 12px);
     }
 
     #tutorial-modal,
@@ -1500,30 +1543,13 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     #chart-modal,
     #sim-modal,
     .contact-modal {
-        max-height: calc(60vh - 76px) !important;
+        max-height: calc(100vh - 76px - var(--mobile-panel-height)) !important;
+        max-height: calc(100dvh - 76px - var(--mobile-panel-height)) !important;
         transform: none !important;
     }
 
     .contact-modal {
         overflow-y: auto;
-    }
-}
-
-@media (max-width: 360px) {
-    #tutorial-backdrop,
-    #meth-backdrop,
-    #chart-backdrop,
-    #sim-backdrop,
-    .contact-backdrop {
-        padding-bottom: calc(45vh + 12px);
-    }
-
-    #tutorial-modal,
-    #meth-modal,
-    #chart-modal,
-    #sim-modal,
-    .contact-modal {
-        max-height: calc(55vh - 76px) !important;
     }
 }
 
