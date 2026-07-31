@@ -959,8 +959,12 @@
               <span class="header-sub">Oil Pipeline Impact Simulator</span>
               <div class="header-right">
                 <span class="header-badge">Created by students at the Illinois Math and Science Academy. Data sourced from: PHMSA &middot; EIA &middot; DataLumos</span>
-                <button id="contact-btn"><i class="bi bi-envelope-fill"></i>Contact</button>
-                <button id="tutorial-btn">&#9432; How to use this tool</button>
+                <button id="contact-btn" aria-label="Contact"><i class="bi bi-envelope-fill"></i><span class="contact-label">Contact</span></button>
+                <button id="tutorial-btn" aria-label="How to use this tool">
+                  <span aria-hidden="true">&#9432;</span>
+                  <span class="tutorial-label">How to use this tool</span>
+                  <span class="tutorial-label-short">Help</span>
+                </button>
                 <button id="meth-btn" aria-label="Data Methodology and Appendix" title="Data Methodology and Appendix">
                   <i class="bi bi-file-earmark-text"></i><span>Data Methodology &amp; Appendix</span>
                 </button>

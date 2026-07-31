@@ -37,6 +37,8 @@ margin-left: auto;
 display: flex;
 align-items: center;
 gap: 10px;
+min-width: 0;
+justify-content: flex-end;
 }
 #tutorial-btn {
 display: flex;
@@ -51,12 +53,22 @@ font-size: 12px;
 font-weight: 600;
 cursor: pointer;
 transition: background .15s;
+white-space: nowrap;
+flex: 0 0 auto;
+height: 30px;
+box-sizing: border-box;
+line-height: 1;
 }
 #tutorial-btn:hover { background: #1d3a9e; }
+#tutorial-btn .tutorial-label-short { display: none; }
 #top-header .header-badge {
 font-size: 11px;
 color: #94a3b8;
 letter-spacing: .3px;
+min-width: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
 }
 
 #contact-btn {
@@ -72,6 +84,11 @@ font-size: 12px;
 font-weight: 600;
 cursor: pointer;
 transition: background .15s;
+white-space: nowrap;
+flex: 0 0 auto;
+height: 30px;
+box-sizing: border-box;
+line-height: 1;
 }
 #contact-btn:hover { background: #d9dbde; }
 
@@ -744,6 +761,10 @@ font-family: 'Inter', sans-serif;
 transition: background .15s;
 font-weight: 600;
 white-space: nowrap;
+flex: 0 0 auto;
+height: 30px;
+box-sizing: border-box;
+line-height: 1;
 }
 #meth-btn:hover { background: #eef0f2; }
 
@@ -1221,6 +1242,22 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
 /* ──────────────────────────────────────────────────────────────────────────
    MOBILE & TABLET OPTIMIZATIONS (Screens under 768px)
    ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  #top-header .header-badge {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  #top-header .header-sub,
+  #top-header .header-divider {
+    display: none;
+  }
+  #meth-btn span {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   /* 1. Adjust Top Header Layout */
   #top-header {
@@ -1331,6 +1368,16 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
   }
   #tutorial-modal .tut-footer {
     padding: 12px 18px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  #contact-btn .contact-label,
+  #tutorial-btn .tutorial-label {
+    display: none;
+  }
+  #tutorial-btn .tutorial-label-short {
+    display: inline;
   }
 }
 
