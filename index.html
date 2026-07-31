@@ -1150,9 +1150,14 @@
             // instruction banner
             document.body.insertAdjacentHTML('beforeend', `
             <div id="instruction-banner">
-              <span><strong>Select a pipeline layer</strong> in the panel, then <strong>click any line</strong> to run the Spill Cost Simulator</span>
+              <span><strong>Select the crude oil layer</strong> in the panel, then <strong>click any line</strong> to run the Spill Cost Simulator</span>
+              <button id="instruction-banner-close" type="button" aria-label="Close instructions">&#x2715;</button>
             </div>
             `);
+            document.getElementById('instruction-banner-close').addEventListener('click', function (event) {
+              event.stopPropagation();
+              document.getElementById('instruction-banner').remove();
+            });
 
 
 </script>

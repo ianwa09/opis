@@ -600,26 +600,48 @@ color: #1a2533;
 /* ── Instruction banner ── */
 #instruction-banner {
 position: fixed;
+box-sizing: border-box;
 bottom: 24px;
 left: calc(50% - 140px);
 transform: translateX(-50%);
 background: rgba(15, 25, 35, 0.90);
 border: 1px solid rgba(255,255,255,.1);
 border-radius: 8px;
-padding: 9px 18px 9px 14px;
+padding: 9px 34px;
 z-index: 8500;
 display: flex;
 align-items: center;
+justify-content: center;
 gap: 10px;
 font-family: 'Inter', sans-serif;
 font-size: 12px;
 color: #9bbdd4;
+text-align: center;
 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 pointer-events: none;
 white-space: nowrap;
 }
 #instruction-banner .banner-icon { font-size: 14px; color: #60a5fa; }
 #instruction-banner strong { color: #e0eaf5; }
+#instruction-banner-close {
+position: absolute;
+top: 4px;
+right: 6px;
+width: 24px;
+height: 24px;
+padding: 0;
+border: none;
+background: transparent;
+color: #94a3b8;
+font-size: 14px;
+line-height: 1;
+cursor: pointer;
+pointer-events: auto;
+}
+#instruction-banner-close:hover,
+#instruction-banner-close:focus-visible {
+color: #fff;
+}
 
 /* Spill KPI bar (not in use) */ 
 #spill-kpi-bar {
@@ -1328,7 +1350,7 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     width: 90vw;
     white-space: normal; /* Allow text wrapping on narrow devices */
     font-size: 11px;
-    padding: 8px 12px;
+    padding: 8px 34px;
   }
 
   #map-toast {
