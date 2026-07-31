@@ -72,16 +72,16 @@ document.body.insertAdjacentHTML('beforeend', `
     <div class="tut-step-body" id="tut-step-body"></div>
 </div>
 <div class="tut-footer">
-    <label class="tut-checkbox-row">
-    <input type="checkbox" id="tut-no-show">
-    Don't show again
-    </label>
-    <div style="display:flex;align-items:center;gap:12px">
-    <span style="font-size:11px;color:#94a3b8" id="tut-step-num"></span>
+    <div class="tut-footer-meta">
+        <label class="tut-checkbox-row">
+        <input type="checkbox" id="tut-no-show">
+        Don't show again
+        </label>
+        <span class="tut-step-num" id="tut-step-num"></span>
+    </div>
     <div class="tut-nav">
         <button class="tut-prev" id="tut-prev-btn" style="display:none">&#8592; Back</button>
         <button class="tut-next" id="tut-next-btn">Next &#8594;</button>
-    </div>
     </div>
 </div>
 </div>
@@ -104,6 +104,19 @@ function closeAllModals() {
         if (typeof showStep === 'function') { showStep(0); }
     }
 }
+
+document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') return;
+
+    var openModal = document.querySelector(
+        '.contact-backdrop.open, #tutorial-backdrop.open, #meth-backdrop.open, #chart-backdrop.open, #sim-backdrop.open'
+    );
+    if (!openModal) return;
+
+    event.preventDefault();
+    closeAllModals();
+});
+
 // Function to handle closing and saving preference
 function closeAndSaveTutorial() {
     document.getElementById('tutorial-backdrop').classList.remove('open');
@@ -372,6 +385,7 @@ document.body.insertAdjacentHTML('beforeend', `
 
 // Methodology modal controls
 document.getElementById('meth-btn').addEventListener('click', function () {
+    closeAllModals();
     document.getElementById('meth-backdrop').classList.add('open');
 });
 document.getElementById('meth-close-btn').addEventListener('click', function () {
@@ -1037,6 +1051,7 @@ function updateSpillVisualization() {
 }
 
 function openSpillVisualization() {
+    closeAllModals();
     document.getElementById('chart-backdrop').classList.add('open');
     updateSpillVisualization();
     setTimeout(function () {
@@ -1857,6 +1872,7 @@ var simClickLatLng = null;
 
 // Open simulator
 function openSimulator(props, latlng) {
+    closeAllModals();
     simClickLatLng = latlng;
     simState = props._state || detectState(latlng.lat, latlng.lng);
 

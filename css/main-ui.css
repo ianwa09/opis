@@ -953,6 +953,17 @@ border-top: 1px solid #f1f5f9;
 display: flex;
 align-items: center;
 justify-content: space-between;
+gap: 16px;
+}
+#tutorial-modal .tut-footer-meta {
+display: flex;
+align-items: center;
+gap: 16px;
+}
+#tutorial-modal .tut-step-num {
+font-size: 11px;
+color: #94a3b8;
+white-space: nowrap;
 }
 #tutorial-modal .tut-skip {
 font-size: 12px;
@@ -967,6 +978,7 @@ padding: 0;
 #tutorial-modal .tut-nav {
 display: flex;
 gap: 8px;
+flex: 0 0 auto;
 }
 #tutorial-modal .tut-prev {
 padding: 8px 16px;
@@ -979,6 +991,7 @@ font-weight: 600;
 cursor: pointer;
 font-family: 'Inter', sans-serif;
 transition: all .15s;
+white-space: nowrap;
 }
 #tutorial-modal .tut-prev:hover { border-color: #94a3b8; }
 #tutorial-modal .tut-next {
@@ -995,6 +1008,7 @@ transition: background .15s;
 display: flex;
 align-items: center;
 gap: 5px;
+white-space: nowrap;
 }
 #tutorial-modal .tut-next:hover { background: #1d3a9e; }
 #tutorial-modal .tut-checkbox-row {
@@ -1004,6 +1018,7 @@ gap: 7px;
 font-size: 12px;
 color: #94a3b8;
 cursor: pointer;
+white-space: nowrap;
 }
 #tutorial-modal .tut-checkbox-row input { cursor: pointer; accent-color: #1e40af; }
 
@@ -1368,6 +1383,21 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
   }
   #tutorial-modal .tut-footer {
     padding: 12px 18px 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  #tutorial-modal .tut-footer-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+  #tutorial-modal .tut-nav {
+    width: 100%;
+  }
+  #tutorial-modal .tut-nav button {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
   }
 }
 
@@ -1417,8 +1447,8 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
-    z-index: 3000;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 9001;
 }
 
 /* Unified Open State */
@@ -1433,23 +1463,71 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     transition-delay: 0s;
 }
 
-/* Center the methodology modal within the map viewport, excluding the
-   desktop header and right-side controls. */
+@media (max-width: 767px) {
+    #tutorial-backdrop,
+    #meth-backdrop,
+    #chart-backdrop,
+    #sim-backdrop,
+    .contact-backdrop {
+        box-sizing: border-box;
+        padding: 52px 12px calc(40vh + 12px);
+    }
+
+    #tutorial-modal,
+    #meth-modal,
+    #chart-modal,
+    #sim-modal,
+    .contact-modal {
+        max-height: calc(60vh - 76px) !important;
+        transform: none !important;
+    }
+
+    .contact-modal {
+        overflow-y: auto;
+    }
+}
+
+@media (max-width: 360px) {
+    #tutorial-backdrop,
+    #meth-backdrop,
+    #chart-backdrop,
+    #sim-backdrop,
+    .contact-backdrop {
+        padding-bottom: calc(45vh + 12px);
+    }
+
+    #tutorial-modal,
+    #meth-modal,
+    #chart-modal,
+    #sim-modal,
+    .contact-modal {
+        max-height: calc(55vh - 76px) !important;
+    }
+}
+
+/* Backdrops cover the entire interface. Modal cards are centered within the
+   usable map area, excluding the desktop header and right-side controls. */
 #meth-backdrop {
-    z-index: 8800;
+    z-index: 9001;
 }
 #chart-backdrop {
-    z-index: 8800;
+    z-index: 9001;
 }
 
 @media (min-width: 768px) {
+    #tutorial-backdrop,
     #meth-backdrop,
-    #chart-backdrop {
-        top: 52px;
-        right: 280px;
-        bottom: 0;
-        width: auto;
-        height: auto;
+    #chart-backdrop,
+    #sim-backdrop,
+    .contact-backdrop {
+        box-sizing: border-box;
+        padding: 52px 280px 0 0;
+    }
+
+    #tutorial-modal,
+    #sim-modal,
+    .contact-modal {
+        transform: none !important;
     }
 
     #meth-modal {
