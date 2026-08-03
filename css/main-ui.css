@@ -1528,6 +1528,17 @@ line-height: 1.6; border-top: 1px solid #f1f5f9; padding-top: 10px;
     transition-delay: 0s;
 }
 
+/* Plotly gives some of its SVG interaction layers explicit pointer/visibility
+   styles. Remove the chart backdrop from layout when closed so those layers
+   cannot remain hit-testable over the Leaflet map. */
+#chart-backdrop:not(.open) {
+    display: none;
+}
+
+#chart-backdrop.open {
+    display: flex;
+}
+
 @media (max-width: 767px) {
     #tutorial-backdrop,
     #meth-backdrop,
