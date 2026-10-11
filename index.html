@@ -914,8 +914,8 @@
                 'Satellite': tile_layer_65789e7f57e18808171f2faaa5fcc82e,
                 'Street':    tile_layer_a4f4a434baedcf1884107ff90e64cddd,
             };
-            var activeBasemap = 'Dark';
-            tile_layer_58d053caaccf3eeb4ec370a7b665d075.addTo(map_10b250abf3b9fb60cf6682f90e22c04c);
+            var activeBasemap = 'Street';
+            basemaps[activeBasemap].addTo(map_10b250abf3b9fb60cf6682f90e22c04c);
 
             // Pipeline overlay layers (mutually exclusive) 
             var pipelineLayers = {
@@ -988,9 +988,9 @@
               <div class="tab-pane active" id="tab-pipelines">
                 <p class="section-label">Basemap</p>
                 <div class="basemap-row">
-                  <button class="bm-btn active" data-bm="Dark">Dark</button>
+                  <button class="bm-btn"        data-bm="Dark">Dark</button>
                   <button class="bm-btn"        data-bm="Satellite">Satellite</button>
-                  <button class="bm-btn"        data-bm="Street">Street</button>
+                  <button class="bm-btn active" data-bm="Street">Street</button>
                 </div>
 
                 <p class="section-label">Pipeline Type <span style="color:#cbd5e1;font-size:8.5px;text-transform:none;letter-spacing:0;font-weight:400">(select one to load)</span></p>
