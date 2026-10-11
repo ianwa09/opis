@@ -71,22 +71,22 @@
             
 
         
-    
-            var tile_layer_58d053caaccf3eeb4ec370a7b665d075 = L.tileLayer(
-                "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-                {
-  "minZoom": 0,
-  "maxZoom": 20,
-  "maxNativeZoom": 20,
-  "noWrap": false,
-  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
-  "subdomains": "abcd",
-  "detectRetina": false,
-  "tms": false,
-  "opacity": 1,
-}
-
-            );
+            var darkTileOptions = {
+                minZoom: 0,
+                maxZoom: 20,
+                maxNativeZoom: 16,
+                attribution: 'Tiles &copy; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS user community'
+            };
+            var tile_layer_58d053caaccf3eeb4ec370a7b665d075 = L.layerGroup([
+                L.tileLayer(
+                    "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+                    Object.assign({}, darkTileOptions, { zIndex: 1 })
+                ),
+                L.tileLayer(
+                    "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+                    Object.assign({}, darkTileOptions, { zIndex: 2 })
+                )
+            ]);
 
             function addDatasetSource(data, source) {
                 (data.features || []).forEach(function (feature) {
