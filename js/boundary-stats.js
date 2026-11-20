@@ -75,6 +75,35 @@ window.addEventListener('load', function() {
     }
 
 
+    // Turf's lineSplit accepts LineStrings, so measure multipart geometry one
+    // line at a time. Only pieces inside the boundary contribute to mileage.
+    function lengthInBoundaryKm(feature, boundary) {
+        let lengthKm = 0;
+        turf.flattenEach(feature, function(line) {
+            const split = turf.lineSplit(line, boundary);
+            const pieces = split.features.length ? split.features : [line];
+            pieces.forEach(function(piece) {
+                const coordinates = piece.geometry.coordinates;
+                // Use a point on the piece's first nonzero edge, staying on
+                // the mapped route even when it curves or follows an edge.
+                for (let i = 1; i < coordinates.length; i++) {
+                    const start = coordinates[i - 1];
+                    const end = coordinates[i];
+                    if (start[0] === end[0] && start[1] === end[1]) continue;
+                    const sample = turf.point([
+                        (start[0] + end[0]) / 2,
+                        (start[1] + end[1]) / 2
+                    ]);
+                    if (turf.booleanPointInPolygon(sample, boundary)) {
+                        lengthKm += turf.length(piece, { units: 'kilometers' });
+                    }
+                    break;
+                }
+            });
+        });
+        return lengthKm;
+    }
+
     // 3. Reusable function to calculate metrics and update/open the popup
     function runBoundaryAnalysis(layer) {
         registerBoundaryLayer(layer);
@@ -97,7 +126,7 @@ window.addEventListener('load', function() {
         const drawnPolygon = layer.toGeoJSON();
 
         // --- Calculation Counters ---
-        let totalLengthInZoneKm = 0;
+        let unmeasuredPipelineFeatures = 0;
         let uniqueOperators = new Set();
 
         let totalSpillsInZone = 0;
@@ -112,6 +141,10 @@ window.addEventListener('load', function() {
             'Hydrocarbon Gas Liquids': 0,
             'Other Infrastructure': 0
         };
+        const mileageBreakdown = Object.fromEntries(
+            Object.keys(crossingBreakdown).map(category => [category, 0])
+        );
+        const mileageCoverage = 'Measures all five mapped line layers, including hidden layers. The national 3.3 million-mile figure includes local gas distribution and gathering networks that these archived routes do not comprehensively cover. Other Infrastructure includes submarine pipes that may carry water, sewage, or unknown products.';
 
         // TRACK UNIQUE TRACKS: Keeps segment chunks from double-counting
         let uniqueCrossingsTracker = new Set();
@@ -165,19 +198,12 @@ window.addEventListener('load', function() {
                                 if (opName && opName !== 'Unknown Operator') uniqueOperators.add(opName);
                                 
                                 try {
-                                    const clippedSegment = turf.lineSplit(feature, drawnPolygon);
-                                    if (clippedSegment.features.length > 0) {
-                                        clippedSegment.features.forEach(segment => {
-                                            let midpoint = turf.midpoint(segment.geometry.coordinates[0], segment.geometry.coordinates[1]);
-                                            if (turf.booleanPointInPolygon(midpoint, drawnPolygon)) {
-                                                totalLengthInZoneKm += turf.length(segment, {units: 'kilometers'});
-                                            }
-                                        });
-                                    } else {
-                                        totalLengthInZoneKm += turf.length(feature, {units: 'kilometers'});
-                                    }
+                                    mileageBreakdown[calculatedCategory] += lengthInBoundaryKm(feature, drawnPolygon) * 0.621371;
                                 } catch (err) {
-                                    totalLengthInZoneKm += (feature.properties.Shape_Leng || feature.properties.Shape_Length || 0) * 111;
+                                    // Source length fields have inconsistent units and
+                                    // describe the entire feature, not the clipped route.
+                                    unmeasuredPipelineFeatures++;
+                                    console.warn('Boundary mileage: could not measure a pipeline feature.', err);
                                 }
                             }
                         }
@@ -212,7 +238,7 @@ window.addEventListener('load', function() {
         }
 
         // 5. Final math translations
-        const totalLengthMiles = totalLengthInZoneKm * 0.621371;
+        const totalLengthMiles = Object.values(mileageBreakdown).reduce((sum, miles) => sum + miles, 0);
         const avgSpillVolume = totalSpillsInZone > 0 ? (totalBarrelsSpilled / totalSpillsInZone) : 0;
         
         let topCause = "None";
@@ -229,7 +255,9 @@ window.addEventListener('load', function() {
         }
         if (topCauseCount > 1) topCause = "Multiple";
 
-        const maxCrossings = Math.max(...Object.values(crossingBreakdown), 1);
+        const mileageWarning = unmeasuredPipelineFeatures > 0
+            ? `${unmeasuredPipelineFeatures} intersecting feature(s) could not be measured and are excluded from mileage.`
+            : '';
         const boundaryExportId = L.stamp(layer);
         window.opisBoundaryAnalyses = window.opisBoundaryAnalyses || {};
         window.opisBoundaryAnalyses[boundaryExportId] = {
@@ -240,7 +268,10 @@ window.addEventListener('load', function() {
                 estimatedPipelineMiles: totalLengthMiles,
                 activeOperatorCount: uniqueOperators.size,
                 activeOperators: Array.from(uniqueOperators).sort(),
-                crossingsByType: Object.assign({}, crossingBreakdown)
+                crossingsByType: Object.assign({}, crossingBreakdown),
+                estimatedPipelineMilesByType: Object.assign({}, mileageBreakdown),
+                mileageCoverage: mileageCoverage,
+                unmeasuredPipelineFeatures: unmeasuredPipelineFeatures
             },
             incidents: {
                 totalIncidents: totalSpillsInZone,
@@ -255,7 +286,7 @@ window.addEventListener('load', function() {
         const popupContent = `
             <div style="font-family: 'Inter', -apple-system, sans-serif; min-width: 260px; padding: 4px; color: #1e293b;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;"><i class="bi bi-bullseye"></i> Boundary Analysis</h4> 
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;">Boundary Analysis</h4>
                 </div>
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
                     <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Infrastructure in Zone</div>
@@ -264,15 +295,16 @@ window.addEventListener('load', function() {
                             <span style="color: #64748b; border-bottom: 1px dotted #cbd5e1;">Pipeline Crossings</span>
                             <span style="font-weight: 600; color: #0f172a;">${intersectingPipelinesCount}</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #64748b;">Est. Pipe Mileage</span>
-                            <span style="font-weight: 600; color: #0f172a;">${totalLengthMiles.toFixed(1)} mi</span>
+                        <div class="mileage-hover-row" tabindex="0" aria-label="Estimated mapped mileage by pipeline type" style="display: flex; justify-content: space-between; cursor: help;">
+                            <span style="color: #64748b; border-bottom: 1px dotted #cbd5e1;">Est. Mapped Mileage</span>
+                            <span style="font-weight: 600; color: #0f172a;">${totalLengthMiles.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} mi</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span style="color: #64748b;">Active Operators</span>
                             <span style="font-weight: 600; color: #0f172a;">${uniqueOperators.size}</span>
                         </div>
                     </div>
+                    <div style="margin-top: 7px; font-size: 10px; line-height: 1.4; color: #64748b;">All mapped types; coverage is incomplete.${mileageWarning ? ' ' + mileageWarning : ''}</div>
                 </div>
                 <div style="background-color: #fdf2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 10px;">
                     <div style="font-size: 11px; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Incident History</div>
@@ -315,6 +347,15 @@ window.addEventListener('load', function() {
             document.body.appendChild(mouseTooltip);
         }
 
+        let mileageTooltip = document.getElementById('mileage-mouse-tooltip');
+        if (!mileageTooltip) {
+            mileageTooltip = document.createElement('div');
+            mileageTooltip.id = 'mileage-mouse-tooltip';
+            mileageTooltip.setAttribute('role', 'tooltip');
+            mileageTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: #1e293b;";
+            document.body.appendChild(mileageTooltip);
+        }
+
         let causeTooltip = document.getElementById('cause-mouse-tooltip');
         if (!causeTooltip) {
             causeTooltip = document.createElement('div');
@@ -323,31 +364,23 @@ window.addEventListener('load', function() {
             document.body.appendChild(causeTooltip);
         }
         
-        mouseTooltip.innerHTML = `
-            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Crossings Breakdown</div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Crude Oil</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Crude Oil']}</span></div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Crude Oil'] / maxCrossings) * 100}%; height: 100%; background: #e11d48;"></div></div>
-                </div>
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Natural Gas</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Natural Gas']}</span></div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Natural Gas'] / maxCrossings) * 100}%; height: 100%; background: #2563eb;"></div></div>
-                </div>
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Petroleum Product</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Petroleum Product']}</span></div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Petroleum Product'] / maxCrossings) * 100}%; height: 100%; background: #16a34a;"></div></div>
-                </div>
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Hydrocarbon Gas Liquids</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Hydrocarbon Gas Liquids']}</span></div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Hydrocarbon Gas Liquids'] / maxCrossings) * 100}%; height: 100%; background: #ca8a04;"></div></div>
-                </div>
-                <div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;"><span>Other Infrastructure</span><span style="font-weight: 600; color: #0f172a;">${crossingBreakdown['Other Infrastructure']}</span></div>
-                    <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(crossingBreakdown['Other Infrastructure'] / maxCrossings) * 100}%; height: 100%; background: #475569;"></div></div>
-                </div>
-            </div>
-        `;
+        const pipelineColors = ['#e11d48', '#2563eb', '#16a34a', '#ca8a04', '#475569'];
+        function pipelineBreakdownHtml(title, breakdown, formatValue) {
+            const maxValue = Math.max(...Object.values(breakdown), 1);
+            return `
+                <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">${title}</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    ${Object.entries(breakdown).map(([category, value], i) => `
+                        <div>
+                            <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 11px; margin-bottom: 2px;"><span>${category}</span><span style="font-weight: 600; color: #0f172a; white-space: nowrap;">${formatValue(value)}</span></div>
+                            <div style="width: 100%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden;"><div style="width: ${(value / maxValue) * 100}%; height: 100%; background: ${pipelineColors[i]};"></div></div>
+                        </div>`).join('')}
+                </div>`;
+        }
+        mouseTooltip.innerHTML = pipelineBreakdownHtml('Crossings Breakdown', crossingBreakdown, value => value);
+        mileageTooltip.innerHTML = pipelineBreakdownHtml('Mapped Mileage Breakdown', mileageBreakdown,
+            value => value.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1}) + ' mi'
+        );
 
         const sortedCauses = Object.entries(spillCauses).sort((a, b) => b[1] - a[1]);
         const maxCauseVal = sortedCauses.length > 0 ? sortedCauses[0][1] : 1;
@@ -380,6 +413,27 @@ window.addEventListener('load', function() {
                 hoverRow.addEventListener('mouseleave', () => mouseTooltip.style.display = 'none');
             }
 
+            const mileageRow = popupContainer.querySelector('.mileage-hover-row');
+            if (mileageRow) {
+                mileageRow.setAttribute('aria-describedby', mileageTooltip.id);
+                function showMileageTooltip(event) {
+                    mileageTooltip.style.display = 'block';
+                    const rowBounds = mileageRow.getBoundingClientRect();
+                    const left = event.type === 'focus' ? rowBounds.right : event.clientX;
+                    const top = event.type === 'focus' ? rowBounds.top : event.clientY;
+                    mileageTooltip.style.left = Math.max(8, Math.min(left + 15, window.innerWidth - mileageTooltip.offsetWidth - 8)) + 'px';
+                    mileageTooltip.style.top = Math.max(8, Math.min(top + 15, window.innerHeight - mileageTooltip.offsetHeight - 8)) + 'px';
+                }
+                mileageRow.addEventListener('mouseenter', showMileageTooltip);
+                mileageRow.addEventListener('mousemove', showMileageTooltip);
+                mileageRow.addEventListener('focus', showMileageTooltip);
+                mileageRow.addEventListener('mouseleave', () => mileageTooltip.style.display = 'none');
+                mileageRow.addEventListener('blur', () => mileageTooltip.style.display = 'none');
+                mileageRow.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') mileageTooltip.style.display = 'none';
+                });
+            }
+
             const causeRow = popupContainer.querySelector('.cause-hover-row');
             if (causeRow) {
                 causeRow.addEventListener('mouseenter', () => causeTooltip.style.display = 'block');
@@ -403,6 +457,7 @@ window.addEventListener('load', function() {
         // Bind closing hooks for tooltips
         layer.getPopup().on('remove', function() {
             if (mouseTooltip) mouseTooltip.style.display = 'none';
+            if (mileageTooltip) mileageTooltip.style.display = 'none';
             if (causeTooltip) causeTooltip.style.display = 'none';
         });
         document.dispatchEvent(new CustomEvent('opis:boundarychange'));

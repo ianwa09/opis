@@ -267,6 +267,15 @@ document.body.insertAdjacentHTML('beforeend', `
         <li><strong>ArcGIS Hub (Esri Federal Datasets):</strong> Crude oil pipeline geometry from U.S. Energy Information Administration (EIA) data hosted through Esri's public dataset hub. See Appendix B for the source link.</li>
     </ul>
     <p><strong>Processing and display:</strong> The archived source files are stored as GeoJSON snapshots and embedded in the application for display with Leaflet. The map does not request live pipeline data from an agency server when it loads. Line features are displayed as pipeline or underwater-infrastructure segments, while terminal datasets are displayed as facility points. A line feature generally represents a source-dataset segment rather than an entire pipeline system, and features without usable geometry cannot be drawn.</p>
+    <p><strong>Boundary mileage:</strong> Boundary analysis measures the portions of all five mapped line layers inside the drawn area, including layers hidden by the pipeline selector. Hover over <em>Est. Mapped Mileage</em> for miles by type. These archived routes do not comprehensively cover local natural gas distribution mains, service lines, or gathering networks. The result is mapped route mileage, not the complete U.S. pipeline inventory. For comparison, <a href="https://www.phmsa.dot.gov/sites/phmsa.dot.gov/files/2024-11/Report%20to%20Congress%20-%20Implementation%20of%20Safety%20Management%20Systems%20by%20Gas%20Distribution%20Pipeline%20Operators.pdf" target="_blank" rel="noopener noreferrer">PHMSA's 2024 report</a> states that gas distribution systems account for more than 72% of the national 3.3 million regulated pipeline miles. The Other Infrastructure category also includes non-energy submarine pipes.</p>
+    <p><strong>Mileage calculation:</strong></p>
+    <ol>
+        <li>Find mapped line features that intersect the drawn boundary. Measure each part of a multipart pipeline separately.</li>
+        <li>Split the routes at the boundary and retain only the portions inside it. Portions outside the boundary or inside polygon holes do not contribute.</li>
+        <li>Use Turf to calculate geographic length in kilometers along the retained routes' longitude and latitude coordinates.</li>
+        <li>Multiply kilometers by 0.621371 to obtain miles, then sum the measured lengths by pipeline type and across all types.</li>
+    </ol>
+    <p><strong>Why mileage is estimated:</strong> Accuracy depends on the detail and coverage of the archived route geometry. Lengths measure mapped surface distance without adjusting for elevation or burial depth, and no mileage is extrapolated for missing pipelines. Overlapping source features are measured independently. Intersecting features that cannot be measured are excluded from mileage; their count is included in boundary exports.</p>
     <ul>
         <li>The HGL source geometry uses Web Mercator coordinates (EPSG:3857). Its map-processing workflow converts those coordinates to geographic longitude and latitude before web-map use.</li>
         <li>Original descriptive attributes are retained where available. Pipeline tooltips identify the archived dataset, and terminal tooltips also display each record's <code>SOURCE</code> field. That field may identify EIA, HIFLD, IRS, EPA, a company website, or another contributing source.</li>
@@ -363,6 +372,7 @@ document.body.insertAdjacentHTML('beforeend', `
         <li>Spill cost estimates carry real uncertainty. Individual incidents can cost significantly more or less than what the model predicts.</li>
         <li>The displayed interval uses a fixed standard error and should not be interpreted as a scenario-specific prediction interval.</li>
         <li>Pipeline location data reflects publicly available federal filings and may not capture recent route changes, abandonments, or new construction.</li>
+        <li>Boundary mileage depends on archived route detail and coverage, does not account for elevation or burial depth, and should not be interpreted as the complete U.S. pipeline inventory. See Section 1 for the calculation.</li>
         <li>The 50-year equipment age input may not match the actual installation date of any specific pipeline segment.</li>
         <li>The model is calibrated to crude oil incidents and should not be interpreted as a cost model for other pipeline commodities.</li>
         <li>Excluding incidents below $100 and above the 97th percentile limits how well the model represents extremely small or exceptionally costly incidents.</li>
@@ -1314,6 +1324,8 @@ window.exportOpisBoundary = function (boundaryId, format) {
         ['generated_at', analysis.generatedAt],
         ['pipeline_crossings', analysis.infrastructure.pipelineCrossings],
         ['estimated_pipeline_miles', analysis.infrastructure.estimatedPipelineMiles],
+        ['mileage_coverage', analysis.infrastructure.mileageCoverage],
+        ['unmeasured_pipeline_features', analysis.infrastructure.unmeasuredPipelineFeatures],
         ['active_operator_count', analysis.infrastructure.activeOperatorCount],
         ['active_operators', analysis.infrastructure.activeOperators.join('; ')],
         ['total_incidents', analysis.incidents.totalIncidents],
@@ -1323,6 +1335,9 @@ window.exportOpisBoundary = function (boundaryId, format) {
     ];
     Object.keys(analysis.infrastructure.crossingsByType).forEach(function (type) {
         rows.push(['pipeline_crossings_' + type.toLowerCase().replace(/\s+/g, '_'), analysis.infrastructure.crossingsByType[type]]);
+    });
+    Object.keys(analysis.infrastructure.estimatedPipelineMilesByType).forEach(function (type) {
+        rows.push(['estimated_pipeline_miles_' + type.toLowerCase().replace(/\s+/g, '_'), analysis.infrastructure.estimatedPipelineMilesByType[type]]);
     });
     Object.keys(analysis.incidents.incidentsByCause).forEach(function (cause) {
         rows.push(['incidents_' + cause.toLowerCase().replace(/\s+/g, '_'), analysis.incidents.incidentsByCause[cause]]);
