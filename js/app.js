@@ -1,38 +1,38 @@
 var tutorialSteps = [
     {
         icon: 'bi-map',
-        title: 'Welcome to OPIS!',
+        title: 'Explore pipelines and spill impacts',
         body: 'This tool lets you explore the U.S. pipeline network and simulate the estimated cost of a spill incident. Use the right-hand panel to control what\'s shown on the map.<br><br>This short tutorial walks you through the key features.'
     },
     {
         icon: 'bi-droplet-half',
-        title: 'Select a Pipeline Layer',
+        title: 'Select a pipeline layer',
         body: 'In the <strong>Pipelines</strong> tab on the right, pick a pipeline type: Crude Oil, Natural Gas, Petroleum Products, and more. Only one type is shown at a time for clarity and performance.<br><br>Each type appears in a distinct color on the map.'
     },
     {
         icon: 'bi-layers',
-        title: 'Switch Your Basemap',
+        title: 'Switch the basemap',
         body: 'At the top of the Pipelines tab, you can switch between three basemaps:<br><br><strong>Dark</strong>: best for seeing pipeline routes clearly<br><strong>Satellite</strong>: see real-world terrain and infrastructure<br><strong>Street</strong>: reference cities and roads'
     },
     {
         icon: 'bi-lightning-charge',
-        title: 'Run a Spill Cost Simulation',
+        title: 'Estimate spill costs',
         body: '<strong>Select the Crude Oil layer, then click any pipeline on the map</strong> to open the Spill Cost Simulator. The simulator is calibrated to crude oil incidents only, using PHMSA data from 2015 to 2024.<br><br>Adjust release volume, location type, and environmental risk factors to estimate total incident costs, broken down by category.'
     },
     {
         icon: 'bi-exclamation-circle',
-        title: 'View Historical Spill Incidents',
-        body: 'Switch to the <strong>Spill History</strong> tab to toggle on a layer of real PHMSA-reported hazardous liquid spill incidents. Each marker shows date, commodity, volume released, and cause.<br><br><em>Note: this dataset is large and may take a few seconds to load.</em>'
+        title: 'Explore historical spills',
+        body: 'Switch to the <strong>Spill history</strong> tab to toggle on a layer of real PHMSA-reported hazardous liquid spill incidents. Each marker shows date, commodity, volume released, and cause.<br><br><em>Note: this dataset is large and may take a few seconds to load.</em>'
     },
     {
         icon: 'bi-pencil',
-        title: 'Draw Boundaries',
+        title: 'Analyze a boundary',
         body: 'You can draw boundaries on the map to calculate oil spill statistics within the region. Click the <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-rectangle modal-geoman-icon"></span></span> tool to draw a rectangular boundary, and the <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-polygon modal-geoman-icon"></span></span> icon to draw a polygonal boundary. You can edit, drag, cut, erase, and rotate previous boundaries with the <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-edit modal-geoman-icon"></span></span>, <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-drag modal-geoman-icon"></span></span>, <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-cut modal-geoman-icon"></span></span>, <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-delete modal-geoman-icon"></span></span>, and <span class="leaflet-pm-toolbar" style="display:inline;"><span class="control-icon leaflet-pm-icon-rotate modal-geoman-icon"></span></span> icons.'
     },
     {
         icon: 'bi-file-earmark-text',
-        title: 'Data Sources & Methodology',
-        body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the navigation bar to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>Contact us at <a href="mailto:iwang@imsa.edu">iwang@imsa.edu</a> and <a href="mailto:olee@imsa.edu">olee@imsa.edu</a> with any questions or suggestions.<br><br>You\'re all set. Explore the map!'
+        title: 'Data sources and methodology',
+        body: 'Tap the <strong>Data Methodology &amp; Appendix</strong> button in the navigation bar to review the data sources, regression model coefficients, and cost category definitions behind the simulator.<br><br>Contact us at <a href="mailto:iwang@imsa.edu">iwang@imsa.edu</a> and <a href="mailto:olee@imsa.edu">olee@imsa.edu</a> with any questions or suggestions.<br><br>You\'re all set. Explore the map'
     }
 ];
 var tutStep = 0;
@@ -61,7 +61,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div class="tut-header">
     <h3>How to use OPIS</h3>
     <div class="tut-subtitle">A quick walkthrough of every feature</div>
-    <button class="tut-close" id="tut-close-btn">&#x2715;</button>
+    <button class="tut-close" id="tut-close-btn" aria-label="Close dialog">&#x2715;</button>
 </div>
 <div class="tut-body">
     <div class="tut-dots">
@@ -184,9 +184,9 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="contact-backdrop" class="contact-backdrop">
 <div id="contact-modal" class="contact-modal">
 <div class="contact-header">
-    <h3>Get in Touch</h3>
+    <h3>Contact the OPIS team</h3>
     <div class="contact-subtitle">Data sharing, inquiries, and feature requests</div>
-    <button class="contact-close" id="contact-close-btn">&#x2715;</button>
+    <button class="contact-close" id="contact-close-btn" aria-label="Close dialog">&#x2715;</button>
 </div>
 <div class="contact-body">
     <p class="contact-intro">
@@ -202,7 +202,7 @@ document.body.insertAdjacentHTML('beforeend', `
             </div>
         </a>
         <a href="mailto:iwang@imsa.edu,olee@imsa.edu?subject=OPIS" class="contact-option-card">
-            <i class="bi bi-envelope-fill"></i>
+            <i class="bi bi-envelope"></i>
             <div class="contact-card-text">
                 <strong>Email Us</strong>
                 <span>Reach out directly with questions, feedback, or collaboration opportunities.</span>
@@ -243,159 +243,186 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="meth-backdrop">
 <div id="meth-modal">
 <div class="meth-header">
-    <h3>Data Methodology &amp; Appendix</h3>
-    <div class="meth-subhead">Sources, Assumptions &amp; Analytical Methods</div>
-    <button class="meth-close" id="meth-close-btn">&#x2715;</button>
+    <h3>Data methodology &amp; appendix</h3>
+    <div class="meth-subhead">Sources, assumptions &amp; calculation methods</div>
+    <button class="meth-close" id="meth-close-btn" aria-label="Close dialog">&#x2715;</button>
 </div>
 <div class="meth-body">
     <div style="display: flex; justify-content: center; align-items: center;">
         <img src="opis-logo.png" alt="OPIS Logo" style="height: 200px; width: auto; object-fit: contain;">
     </div>
     <div class="meth-section">
-    <div class="meth-section-title">1. Pipeline Network Data</div>
-    <p><strong>Sources:</strong> When the original federal download endpoints were unavailable, archived copies of the federal infrastructure datasets were obtained through DataLumos. The crude oil pipeline layer was obtained separately from an ArcGIS Hub copy of U.S. Energy Information Administration data.</p>
+    <div class="meth-section-title">1. Pipeline network data</div>
+    <p>When the original federal downloads were unavailable, we used archived copies from DataLumos at the University of Michigan. The crude oil layer comes from a U.S. Energy Information Administration (EIA) dataset on ArcGIS Hub.</p>
+    <p>The DataLumos archive includes these Homeland Infrastructure Foundation-Level Data (HIFLD) datasets:</p>
     <ul>
-        <li><strong>DataLumos Archive (ICPSR / University of Michigan):</strong> Archived government datasets for Homeland Infrastructure Foundation-Level Data (HIFLD) layers, including:
-            <ul>
-                <li>Submarine Pipelines (ICPSR 240657 &amp; ICPSR 240796)</li>
-                <li>Natural Gas Pipelines (ICPSR 239743)</li>
-                <li>Hydrocarbon Gas Liquid / Petroleum Product Pipelines (ICPSR 239260)</li>
-                <li>Petroleum terminal facilities with rail, truck, and water-access attributes (ICPSR 240798)</li>
-                <li>POL (Petroleum, Oil, and Lubricants) Terminals (ICPSR 239798)</li>
-            </ul>
-        </li>
-        <li><strong>ArcGIS Hub (Esri Federal Datasets):</strong> Crude oil pipeline geometry from U.S. Energy Information Administration (EIA) data hosted through Esri's public dataset hub. See Appendix B for the source link.</li>
+        <li>Submarine Pipelines (ICPSR 240657 and 240796).</li>
+        <li>Natural Gas Pipelines (ICPSR 239743).</li>
+        <li>Hydrocarbon Gas Liquid / Petroleum Product Pipelines (ICPSR 239260).</li>
+        <li>Petroleum terminal facilities with rail, truck, and water-access attributes (ICPSR 240798).</li>
+        <li>POL (Petroleum, Oil, and Lubricants) Terminals (ICPSR 239798).</li>
     </ul>
-    <p><strong>Processing and display:</strong> The archived source files are stored as GeoJSON snapshots and embedded in the application for display with Leaflet. The map does not request live pipeline data from an agency server when it loads. Line features are displayed as pipeline or underwater-infrastructure segments, while terminal datasets are displayed as facility points. A line feature generally represents a source-dataset segment rather than an entire pipeline system, and features without usable geometry cannot be drawn.</p>
-    <p><strong>Boundary mileage:</strong> Boundary analysis measures the portions of all five mapped line layers inside the drawn area, including layers hidden by the pipeline selector. Hover over <em>Est. Mapped Mileage</em> for miles by type. These archived routes do not comprehensively cover local natural gas distribution mains, service lines, or gathering networks. The result is mapped route mileage, not the complete U.S. pipeline inventory. For comparison, <a href="https://www.phmsa.dot.gov/sites/phmsa.dot.gov/files/2024-11/Report%20to%20Congress%20-%20Implementation%20of%20Safety%20Management%20Systems%20by%20Gas%20Distribution%20Pipeline%20Operators.pdf" target="_blank" rel="noopener noreferrer">PHMSA's 2024 report</a> states that gas distribution systems account for more than 72% of the national 3.3 million regulated pipeline miles. The Other Infrastructure category also includes non-energy submarine pipes.</p>
-    <p><strong>Mileage calculation:</strong></p>
+    <p><strong>Map display.</strong> OPIS draws the map in Leaflet from archived GeoJSON snapshots. A line usually represents one segment from the source dataset. Points mark terminal facilities. The map skips records without usable geometry.</p>
+    <p><strong>Boundary mileage.</strong> OPIS measures the routes inside the drawn area across all five line layers, including layers hidden on the map. Hover over <em>Est. mapped mileage</em> in the boundary popup for miles by type.</p>
+    <p>The mileage total covers only the archived routes. Coverage is incomplete for local natural gas distribution mains, service lines, and gathering networks.</p>
+    <p>The Pipeline and Hazardous Materials Safety Administration (PHMSA) reports 3.3 million regulated pipeline miles in its <a href="https://www.phmsa.dot.gov/sites/phmsa.dot.gov/files/2024-11/Report%20to%20Congress%20-%20Implementation%20of%20Safety%20Management%20Systems%20by%20Gas%20Distribution%20Pipeline%20Operators.pdf" target="_blank" rel="noopener noreferrer">2024 report</a>. Gas distribution systems account for more than 72% of that total.</p>
+    <p><strong>How OPIS measures mileage</strong></p>
     <ol>
-        <li>Find mapped line features that intersect the drawn boundary. Measure each part of a multipart pipeline separately.</li>
-        <li>Split the routes at the boundary and retain only the portions inside it. Portions outside the boundary or inside polygon holes do not contribute.</li>
-        <li>Use Turf to calculate geographic length in kilometers along the retained routes' longitude and latitude coordinates.</li>
-        <li>Multiply kilometers by 0.621371 to obtain miles, then sum the measured lengths by pipeline type and across all types.</li>
+        <li>OPIS finds routes that touch or lie inside the drawn area. It measures each part of a route separately.</li>
+        <li>It splits each route at the boundary and keeps the parts inside the drawn area. It skips any part inside a hole in the area.</li>
+        <li>It uses Turf to measure the remaining route in kilometers from the latitude and longitude coordinates.</li>
+        <li>It multiplies kilometers by 0.621371 to get miles, then adds up the miles for each pipeline type and for all types combined.</li>
     </ol>
-    <p><strong>Why mileage is estimated:</strong> Accuracy depends on the detail and coverage of the archived route geometry. Lengths measure mapped surface distance without adjusting for elevation or burial depth, and no mileage is extrapolated for missing pipelines. Overlapping source features are measured independently. Intersecting features that cannot be measured are excluded from mileage; their count is included in boundary exports.</p>
+    <p><strong>Why mileage is an estimate.</strong> The total depends on which routes the archives contain and how precisely they map them. It measures distance along the mapped lines in two dimensions. Overlapping records each contribute mileage. If OPIS cannot measure a route, it skips that route's mileage. The export includes a count of those routes.</p>
+    <p><strong>Pipeline crossings.</strong> The count includes routes that touch or lie inside the drawn area. Within each layer, OPIS counts records with the same identifier once. It uses the first available value from <code>PIPELINE_ID</code>, <code>SUB_SYSTEM</code>, <code>OBJECTID</code>, or <code>id</code>. For records with no identifier, it uses the operator, pipeline name, and commodity. That can group separate routes if they share all three values.</p>
     <ul>
-        <li>The HGL source geometry uses Web Mercator coordinates (EPSG:3857). Its map-processing workflow converts those coordinates to geographic longitude and latitude before web-map use.</li>
-        <li>Original descriptive attributes are retained where available. Pipeline tooltips identify the archived dataset, and terminal tooltips also display each record's <code>SOURCE</code> field. That field may identify EIA, HIFLD, IRS, EPA, a company website, or another contributing source.</li>
-        <li>The terminal <code>SOURCE</code> field describes the provenance of an individual facility record. The DataLumos citation describes the archived dataset through which that record was obtained.</li>
-        <li>The submarine layer is a broader USACE Inland Electronic Navigational Chart underwater-infrastructure dataset. It includes supply pipes, intake pipes, outfall pipes, and sewers, with reported products that include gas, oil, water, and chemicals. Records with a blank or unknown product are retained.</li>
-        <li>These layers are static archived snapshots. They should not be interpreted as a live or complete inventory of current infrastructure.</li>
+        <li>The hydrocarbon gas liquids (HGL) source uses Web Mercator coordinates (EPSG:3857). The application converts projected coordinates to geographic longitude and latitude before map display.</li>
+        <li>The application keeps original descriptive attributes where available. Pipeline tooltips identify the archived dataset. Terminal tooltips also display the record's <code>SOURCE</code> field.</li>
+        <li>The <code>SOURCE</code> field identifies the contributor to an individual facility record. The DataLumos citation identifies the archive that supplied the dataset.</li>
+        <li>The submarine layer comes from the U.S. Army Corps of Engineers' Inland Electronic Navigational Charts. It includes supply, intake, outfall, and sewer pipes. The records list products such as gas, oil, water, and chemicals. OPIS keeps records with blank or unknown products. Boundary analysis groups submarine routes under Other Infrastructure when the commodity does not match a pipeline category.</li>
     </ul>
     </div>
 
     <div class="meth-section">
-    <div class="meth-section-title">2. Spill Incident Data</div>
-    <p><strong>Source:</strong> PHMSA Hazardous Liquid Incident Reports, available through the PHMSA online data portal (phmsa.dot.gov). The embedded map dataset contains 5,812 incidents dated January 1, 2010 through December 23, 2025.</p>
+    <div class="meth-section-title">2. Spill incident data</div>
+    <p>The spill layer uses PHMSA Hazardous Liquid Incident Reports. The embedded dataset contains 5,812 incidents dated January 1, 2010 through December 23, 2025.</p>
     <ul>
-        <li>Every displayed incident has a numeric geographic coordinate pair; the application does not independently validate the reported location.</li>
-        <li>Volume figures represent unintentional release in barrels (bbls) as reported by the operator.</li>
-        <li>The embedded data includes 34 incidents with a reported release volume of zero barrels. Records with missing coordinates or other missing source fields cannot be assessed from the embedded map data alone.</li>
-        <li>The spill-history layer contains no dollar fields. Dollar adjustment applies to the separate cost-model training data described below, not to the displayed incident markers.</li>
+        <li>OPIS uses the coordinates in the incident reports. When incidents share a location, the map moves their markers apart so you can select each one.</li>
+        <li>Release volume is the number of barrels the operator reported as an unintentional release. The dataset includes 34 reports of zero barrels.</li>
+        <li>The incident map shows spill records and release volumes. The cost model uses a separate set of records for training.</li>
+        <li>Spill filters and the timeline date affect which incidents count in a drawn area. The mileage calculation still uses all five line layers.</li>
     </ul>
     </div>
 
     <div class="meth-section">
-    <div class="meth-section-title">3. Spill Cost Simulation Model</div>
-    <p><strong>Training data and outcome:</strong> The cost model was developed from PHMSA crude oil incident records covering 2015 through 2024. The modeled outcome is <code>log1p</code>-transformed total incident cost in 2024 dollars.</p>
-    <ul>
-        <li>Total incident cost is calculated by summing <code>EST_COST_OPER_PAID</code>, <code>EST_COST_PROP_DAMAGE</code>, <code>EST_COST_EMERGENCY</code>, <code>EST_COST_ENVIRONMENTAL</code>, and <code>EST_COST_OTHER</code>.</li>
-        <li>Equipment age is calculated as incident year minus installation year.</li>
-        <li>Historical costs are converted to 2024 dollars using annual inflation-adjustment factors. Records with adjusted costs below $100 or missing equipment age are excluded, followed by incidents above the 97th percentile of adjusted cost.</li>
-        <li>Release volume and adjusted cost are transformed with <code>log1p</code>. Missing or unrecognized values in five binary indicator fields are converted to zero.</li>
-        <li>Location type, incident area type, pipeline facility type, and state are one-hot encoded. A 50-tree random forest with five-fold RFECV selects predictors using R-squared, after which an OLS model is fitted on the selected columns.</li>
-    </ul>
-    <p><strong>Model summary:</strong> The final model uses approximately 2,400 incidents and has an adjusted R-squared of approximately 0.61.</p>
-    <p><strong>Equipment age:</strong> All simulations use 50 years as a fixed input to keep estimates comparable across pipeline segments. The application does not read or estimate the actual installation age of the selected pipeline.</p>
-    <ul>
-        <li>The displayed interval applies the same fixed log-scale error value of 0.078 to every scenario. It is an approximate uncertainty range, not a scenario-specific confidence interval or an individual-incident prediction range.</li>
-        <li>The result is a back-transformed log-scale model estimate. Real-world costs can vary significantly, and the deployed calculation does not apply a retransformation or smearing correction.</li>
-    </ul>
+    <div class="meth-section-title">3. Spill cost simulation model</div>
+    <p>The simulator estimates the cost of a crude oil spill in 2024 dollars. It uses release volume, equipment age, risk factors, location, facility type, and state.</p>
+    <p><strong>Model training.</strong> We used PHMSA crude oil incident reports from 2015 through 2024. The model summary gives about 2,400 incidents. It reports an adjusted R-squared of about 0.61 for the fit to the training data.</p>
+    <ol>
+        <li>We added the five PHMSA cost fields in Section 4 and adjusted costs to 2024 dollars. We subtracted the installation year from the incident year to get the equipment age.</li>
+        <li>We dropped records with an adjusted cost below $100 or missing equipment age. We then dropped records above the 97th percentile of adjusted cost.</li>
+        <li>We applied <code>log1p(x) = ln(1 + x)</code> to release volume and adjusted cost. In five yes-or-no fields, we used zero for missing or unrecognized answers.</li>
+        <li>We gave each category its own column. The column has a 1 if the record belongs to that category and a 0 otherwise. This is one-hot encoding. We used it for location, incident area, facility type, and state.</li>
+        <li>We used a random forest with 50 trees to rank the inputs. Recursive feature elimination with cross-validation (RFECV) compared sets of inputs. It scored each set by R-squared across five groups of records. We then fit an ordinary least squares (OLS) regression to the selected inputs.</li>
+    </ol>
+    <p><strong>How the simulator estimates cost.</strong> The simulator assumes 50 years of equipment age for every pipeline. It applies <code>log1p</code> to the release volume, then uses the coefficients in Appendix A to calculate the estimate on the log scale. Call that estimate <code>z</code>.</p>
+    <p>The simulator converts the log estimate to dollars with <code>exp(z) - 1</code> and displays that result. It skips the smearing correction. That correction would use the model's errors on the training data to adjust the dollar estimate.</p>
+    <p><strong>Illustrative interval.</strong> The simulator applies the same margin to every estimate on the log scale. It subtracts <code>1.96 &times; <span id="meth-interval-parameter"></span></code> from <code>z</code> for the lower end and adds it for the upper end. It then converts both ends to dollars. The share of actual spill costs that would fall in this interval is unknown.</p>
     </div>
 
     <div class="meth-section">
-    <div class="meth-section-title">4. Cost Breakdown Categories</div>
-    <p>The five PHMSA fields below are summed to create total incident cost. For presentation in the simulator, each modeled total is allocated using the fixed category shares shown. These shares do not change with the selected scenario.</p>
+    <div class="meth-section-title">4. Cost breakdown categories</div>
+    <p>The model uses the sum of the five PHMSA fields below as total incident cost. The simulator divides each estimate into categories using the same percentages for every scenario.</p>
     <table class="meth-table">
-        <tr><th>Category</th><th>Share</th><th>PHMSA Field</th></tr>
-        <tr><td>Operator Paid</td><td>38%</td><td>EST_COST_OPER_PAID</td></tr>
-        <tr><td>Property Damage</td><td>22%</td><td>EST_COST_PROP_DAMAGE</td></tr>
-        <tr><td>Emergency Response</td><td>18%</td><td>EST_COST_EMERGENCY</td></tr>
+        <tr><th>Category</th><th>Share</th><th>PHMSA field</th></tr>
+        <tr><td>Operator paid</td><td>38%</td><td>EST_COST_OPER_PAID</td></tr>
+        <tr><td>Property damage</td><td>22%</td><td>EST_COST_PROP_DAMAGE</td></tr>
+        <tr><td>Emergency response</td><td>18%</td><td>EST_COST_EMERGENCY</td></tr>
         <tr><td>Environmental</td><td>15%</td><td>EST_COST_ENVIRONMENTAL</td></tr>
         <tr><td>Other</td><td>7%</td><td>EST_COST_OTHER</td></tr>
     </table>
     </div>
 
     <div class="meth-section">
-    <div class="meth-section-title">5. Geographic State Detection</div>
-    <p>Pipeline click coordinates are matched to a state using bounding-box logic covering all 50 states. Because state boxes overlap and the first match is used, segments near state borders may be assigned to the wrong state. The deployed model then applies a hard-coded state adjustment. Spill-history filtering uses <code>us-atlas</code> state polygons with the same bounding boxes as a fallback.</p>
+    <div class="meth-section-title">5. Geographic state detection</div>
+    <p>OPIS uses the state in the pipeline record when available. Otherwise, it checks the coordinates you clicked against rectangles for all 50 states and takes the first match. The rectangles overlap, so OPIS can pick the wrong state near a border.</p>
+    <p>If the pipeline has no state value and the coordinates match no state, the simulator uses the Texas coefficient of -0.10.</p>
+    <p>For spill history, OPIS checks each incident against state outlines from <code>us-atlas</code>. If an incident matches no outline or the outlines fail to load, OPIS checks the same rectangles.</p>
     </div>
 
     <div class="meth-section">
     <span class="appendix-label">Appendix A</span>
-    <div class="meth-section-title" style="margin-top:6px">OLS Regression Coefficients</div>
-    <p>The simulator uses the following log-scale model constants:</p>
+    <div class="meth-section-title" style="margin-top:8px">Model coefficients</div>
+    <p>The tables show the coefficients the simulator uses to calculate <code>z</code>, the cost estimate on the log scale.</p>
     <table class="meth-table">
-        <tr><th>Variable</th><th>Coefficient</th><th>Interpretation</th></tr>
-        <tr><td>Intercept</td><td>9.42</td><td>Baseline cost approx. $12,300</td></tr>
-        <tr><td>Equipment Age (per yr)</td><td>0.0118</td><td>Fixed at 50 yrs (adds about 80% vs. new)</td></tr>
-        <tr><td>Log Release Volume</td><td>0.847</td><td>Primary cost driver</td></tr>
-        <tr><td>High Population Area</td><td>0.542</td><td>Adds roughly 72% to cost</td></tr>
-        <tr><td>Water Contamination</td><td>0.793</td><td>Adds roughly 121% to cost</td></tr>
-        <tr><td>Surface Remediation</td><td>0.618</td><td>Adds roughly 86% to cost</td></tr>
-        <tr><td>Water Body Crossing</td><td>0.312</td><td>Adds roughly 37% to cost</td></tr>
-        <tr><td>Above Ground Location</td><td>-0.287</td><td>About 25% cheaper than below ground</td></tr>
-        <tr><td>Underwater Location</td><td>0.445</td><td>Adds roughly 56% to cost</td></tr>
-        <tr><td>Interstate Pipeline</td><td>0.148</td><td>Adds roughly 16% for regulatory burden</td></tr>
-        <tr><td>Fixed log-scale interval error</td><td>0.078</td><td>Applied to every scenario's approximate interval</td></tr>
+        <thead><tr><th>Input</th><th>Coefficient</th><th>Role in the calculation</th></tr></thead>
+        <tbody id="meth-model-coefficients"></tbody>
     </table>
+    <p>The intercept alone converts to about $12,300 when all other terms are zero. The simulator starts at one barrel and uses 50 years of equipment age, so even the smallest release includes both terms.</p>
+    <p>The location adjustment starts at zero for a spill below ground. The facility adjustment starts at zero for a gathering line. Each alternative adds its coefficient to the log estimate.</p>
+    <details>
+        <summary>State adjustments for all 50 states</summary>
+        <p>The calculation adds the coefficient for the detected state, or Texas if detection fails. A zero coefficient leaves the logarithmic estimate unchanged.</p>
+        <table class="meth-table">
+            <thead><tr><th>State</th><th>Coefficient</th><th>State</th><th>Coefficient</th></tr></thead>
+            <tbody id="meth-state-coefficients"></tbody>
+        </table>
+    </details>
     </div>
 
     <div class="meth-section">
     <span class="appendix-label">Appendix B</span>
-    <div class="meth-section-title" style="margin-top:6px">Data Sources</div>
+    <div class="meth-section-title" style="margin-top:8px">Data sources and method references</div>
     <ul>
-        <li>PHMSA Incident Data: phmsa.dot.gov/data-and-statistics/pipeline/pipeline-incident-flagged-files</li>
-        <li>DataLumos archived HIFLD datasets: ICPSR 240657, 240796, 239743, 239260, 240798, and 239798</li>
-        <li>EIA Crude Oil Pipeline Data: hub.arcgis.com/datasets/bb2aee97117d403ea63bcfe6be4a12c8_0</li>
-        <li>CPI Inflation Adjustment: bls.gov/cpi (Series CUUR0000SA0)</li>
-        <li>Spill state polygons: us-atlas version 3; pipeline and fallback state detection: bounding boxes embedded in the application</li>
+        <li><a href="https://www.phmsa.dot.gov/data-and-statistics/pipeline/pipeline-incident-flagged-files" target="_blank" rel="noopener noreferrer">PHMSA incident data</a>.</li>
+        <li>DataLumos archived HIFLD datasets: ICPSR 240657, 240796, 239743, 239260, 240798, and 239798.</li>
+        <li><a href="https://hub.arcgis.com/datasets/bb2aee97117d403ea63bcfe6be4a12c8_0" target="_blank" rel="noopener noreferrer">EIA crude oil pipeline data on ArcGIS Hub</a>.</li>
+        <li>Inflation adjustment uses <a href="https://www.bls.gov/cpi/" target="_blank" rel="noopener noreferrer">BLS Consumer Price Index</a> series <code>CUUR0000SA0</code>.</li>
+        <li>Spill state polygons use <code>us-atlas</code> version 3. The application embeds rectangular bounds for pipeline state detection and fallback detection.</li>
+        <li>The <a href="https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFECV.html" target="_blank" rel="noopener noreferrer">scikit-learn RFECV reference</a> explains feature selection with cross-validation.</li>
+        <li>The <a href="https://www.itl.nist.gov/div898/handbook/pmd/section4/pmd431.htm" target="_blank" rel="noopener noreferrer">NIST least-squares reference</a> explains the fitting criterion.</li>
     </ul>
     </div>
 
     <div class="meth-section">
     <span class="appendix-label">Appendix C</span>
-    <div class="meth-section-title" style="margin-top:6px">Limitations and Disclaimers</div>
+    <div class="meth-section-title" style="margin-top:8px">Limitations</div>
     <ul>
-        <li>This tool is for informational and planning purposes only. It is not engineering, legal, or regulatory advice.</li>
-        <li>Spill cost estimates carry real uncertainty. Individual incidents can cost significantly more or less than what the model predicts.</li>
-        <li>The displayed interval uses a fixed standard error and should not be interpreted as a scenario-specific prediction interval.</li>
-        <li>Pipeline location data reflects publicly available federal filings and may not capture recent route changes, abandonments, or new construction.</li>
-        <li>Boundary mileage depends on archived route detail and coverage, does not account for elevation or burial depth, and should not be interpreted as the complete U.S. pipeline inventory. See Section 1 for the calculation.</li>
-        <li>The 50-year equipment age input may not match the actual installation date of any specific pipeline segment.</li>
-        <li>The model is calibrated to crude oil incidents and should not be interpreted as a cost model for other pipeline commodities.</li>
-        <li>Excluding incidents below $100 and above the 97th percentile limits how well the model represents extremely small or exceptionally costly incidents.</li>
-        <li>Feature selection and the final OLS fit use the same encoded dataset. The reported adjusted R-squared is an in-sample measure rather than a held-out performance estimate.</li>
-        <li>Missing or unrecognized binary indicator values are treated as zero, which may conflate unknown values with reported negative responses.</li>
-        <li>Fixed cost-category shares and state adjustments simplify variation that may differ across individual incidents.</li>
+        <li>Use OPIS for general information and planning. Consult a qualified professional for engineering, legal, or regulatory decisions.</li>
+        <li>The archived routes can omit recent construction, route changes, and abandoned infrastructure. Their mileage covers the available source geometry.</li>
+        <li>The crossing count can merge records with the same identifiers or descriptive fields. Overlapping route features still contribute independently to mileage.</li>
+        <li>The simulator is for crude oil spills. The training data exclude incidents below $100 and above the 97th percentile of adjusted cost.</li>
+        <li>The training data use the same value for missing answers and reported &ldquo;no&rdquo; answers in the yes-or-no fields.</li>
+        <li>Every estimate assumes 50 years of equipment age and uses the same cost shares. Near a border, the state lookup can apply the wrong coefficient.</li>
     </ul>
     </div>
 
     <div class="meth-section">
     <span class="appendix-label">Appendix D</span>
-    <div class="meth-section-title" style="margin-top:6px">Acknowledgements</div>
+    <div class="meth-section-title" style="margin-top:8px">Acknowledgements</div>
     <p>Thank you to Mrs. Laura Young, Mrs. Cathy Clarkin, and the BLAST Team at Accelerate Climate Solutions for their support of this project.</p>
     </div>
-
 </div>
 </div>
 </div>
 `);
 
 // Methodology modal controls
+function renderMethodModelTables() {
+    var coefficientRows = [
+        ['Intercept', 'intercept', 'Starting value before the input terms'],
+        ['Equipment age', 'age', 'Multiplies age in years, fixed at 50'],
+        ['Release volume', 'log_bbls', 'Multiplies log1p of release volume in barrels'],
+        ['High population area', 'high_pop', 'Adds this term when selected'],
+        ['Water contamination', 'water_contam', 'Adds this term when selected'],
+        ['Surface remediation', 'surface_remed', 'Adds this term when selected'],
+        ['Water body crossing', 'water_crossing', 'Adds this term when selected'],
+        ['Above-ground location', 'aboveground', 'Applies instead of the below-ground reference'],
+        ['Underwater location', 'underwater', 'Applies instead of the below-ground reference'],
+        ['Interstate pipeline', 'interstate', 'Applies instead of the gathering-line reference'],
+        ['Intrastate pipeline', 'intrastate', 'Applies instead of the gathering-line reference']
+    ];
+    document.getElementById('meth-model-coefficients').innerHTML = coefficientRows.map(function (row) {
+        return '<tr><td>' + row[0] + '</td><td style="text-align:right">' +
+            OLS[row[1]] + '</td><td>' + row[2] + '</td></tr>';
+    }).join('');
+
+    var states = Object.keys(OLS.states).sort();
+    var stateRows = [];
+    for (var index = 0; index < states.length; index += 2) {
+        var pair = states.slice(index, index + 2);
+        stateRows.push('<tr>' + pair.map(function (state) {
+            return '<td>' + state + '</td><td style="text-align:right">' +
+                OLS.states[state].toFixed(2) + '</td>';
+        }).join('') + '</tr>');
+    }
+    document.getElementById('meth-state-coefficients').innerHTML = stateRows.join('');
+    document.getElementById('meth-interval-parameter').textContent = OLS.se_mean;
+}
+
 document.getElementById('meth-btn').addEventListener('click', function () {
     closeAllModals();
+    renderMethodModelTables();
     document.getElementById('meth-backdrop').classList.add('open');
 });
 document.getElementById('meth-close-btn').addEventListener('click', function () {
@@ -407,10 +434,12 @@ document.getElementById('meth-backdrop').addEventListener('click', function (e) 
 
 
 document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.setAttribute('aria-pressed', btn.classList.contains('active'));
     btn.addEventListener('click', function () {
-        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
         document.querySelectorAll('.tab-pane').forEach(function (p) { p.classList.remove('active'); });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
         document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     });
 });
@@ -429,14 +458,17 @@ document.querySelectorAll('.bm-btn').forEach(function (btn) {
 });
 
 // Pipeline selection
+var pipelineLoadTimer = null;
 document.querySelectorAll('#pipeline-list li').forEach(function (li) {
     li.addEventListener('click', function () {
+        clearTimeout(pipelineLoadTimer);
         var name = li.dataset.layer;
         // If already selected -> clear
         if (activePipeline === name) {
             map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[name]);
             activePipeline = null;
             li.classList.remove('selected');
+            li.setAttribute('aria-pressed', 'false');
             var strip = document.getElementById('strip-name-text');
             if (strip) { strip.textContent = 'None selected'; strip.className = 'strip-name none'; }
             return;
@@ -444,24 +476,32 @@ document.querySelectorAll('#pipeline-list li').forEach(function (li) {
         // Remove previous
         if (activePipeline !== null) {
             map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[activePipeline]);
-            document.querySelector('#pipeline-list li.selected').classList.remove('selected');
+            var previousLayer = document.querySelector('#pipeline-list li.selected');
+            previousLayer.classList.remove('selected');
+            previousLayer.setAttribute('aria-pressed', 'false');
         }
         // Add new
         activePipeline = name;
         li.classList.add('selected');
+        li.setAttribute('aria-pressed', 'true');
         var strip = document.getElementById('strip-name-text');
         if (strip) { strip.textContent = name; strip.className = 'strip-name'; }
         showToast('Loading ' + name + '…');
-        setTimeout(function () { map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(pipelineLayers[name]); }, 30);
+        pipelineLoadTimer = setTimeout(function () {
+            if (activePipeline === name) {
+                map_10b250abf3b9fb60cf6682f90e22c04c.addLayer(pipelineLayers[name]);
+            }
+        }, 30);
     });
 });
 
 // Clear button
 document.getElementById('ctrl-clear-btn').addEventListener('click', function () {
+    clearTimeout(pipelineLoadTimer);
     if (activePipeline !== null) {
         map_10b250abf3b9fb60cf6682f90e22c04c.removeLayer(pipelineLayers[activePipeline]);
         var sel = document.querySelector('#pipeline-list li.selected');
-        if (sel) sel.classList.remove('selected');
+        if (sel) { sel.classList.remove('selected'); sel.setAttribute('aria-pressed', 'false'); }
         activePipeline = null;
         var strip = document.getElementById('strip-name-text');
         if (strip) { strip.textContent = 'None selected'; strip.className = 'strip-name none'; }
@@ -476,6 +516,7 @@ function setSpills(on) {
     // Lock or unlock availability of the color configuration switch
     var sevContainer = document.getElementById('severity-toggle-container');
     var sevCheckbox = document.getElementById('severity-gradient-checkbox');
+    if (sevCheckbox) sevCheckbox.disabled = !on;
     if (sevContainer) {
         if (on) {
             sevContainer.style.opacity = "1";
@@ -613,6 +654,13 @@ function formatPlaybackDate(date) {
     });
 }
 
+function setSpillPlaybackStatus(dateText, detailText) {
+    document.getElementById('spill-timelapse-date').textContent = dateText;
+    document.getElementById('spill-timelapse-detail').textContent = detailText || '';
+    document.getElementById('spill-timelapse-status').title =
+        dateText + (detailText ? ' ' + detailText : '');
+}
+
 function getSpillPlaybackBounds() {
     if (!window.allSpillFeatures || !window.allSpillFeatures.length) return null;
 
@@ -651,7 +699,6 @@ function resetSpillTimelapse() {
     var bounds = getSpillPlaybackBounds();
     var range = document.getElementById('spill-timelapse-range');
     var play = document.getElementById('spill-timelapse-play');
-    var status = document.getElementById('spill-timelapse-status');
     spillPlayback.features = [];
     spillPlayback.nextIndex = 0;
     spillPlayback.currentDate = null;
@@ -659,7 +706,7 @@ function resetSpillTimelapse() {
     if (!bounds) {
         range.disabled = true;
         play.disabled = true;
-        status.textContent = 'Choose a valid date range';
+        setSpillPlaybackStatus('Choose a valid date range');
         return;
     }
 
@@ -671,8 +718,7 @@ function resetSpillTimelapse() {
     range.value = totalDays;
     range.disabled = false;
     play.disabled = false;
-    status.textContent =
-        formatPlaybackDate(bounds.start) + ' to ' + formatPlaybackDate(bounds.end);
+    setSpillPlaybackStatus(formatPlaybackDate(bounds.start), 'to ' + formatPlaybackDate(bounds.end));
 }
 
 function buildSpillPlaybackFeatures() {
@@ -725,8 +771,7 @@ function renderSpillPlaybackDate(date) {
         targetIndex.toLocaleString();
     document.getElementById('spill-filters-count-total').textContent =
         window.allSpillFeatures.length.toLocaleString();
-    document.getElementById('spill-timelapse-status').textContent =
-        formatPlaybackDate(date) + ' | ' + targetIndex.toLocaleString() + ' incidents';
+    setSpillPlaybackStatus(formatPlaybackDate(date), targetIndex.toLocaleString() + ' incidents');
     if (typeof updateSpillVisualization === 'function') updateSpillVisualization();
 }
 
@@ -765,7 +810,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="chart-backdrop">
   <div id="chart-modal" role="dialog" aria-modal="true" aria-labelledby="spill-chart-title">
     <div class="chart-header">
-      <h3 id="spill-chart-title">Spill Data Over Time</h3>
+      <h3 id="spill-chart-title">Spill data over time</h3>
       <div class="chart-subhead">Active filters and the highlighted boundary are applied automatically</div>
       <button class="chart-close" id="chart-close-btn" aria-label="Close spill chart">&#x2715;</button>
     </div>
@@ -976,7 +1021,7 @@ function updateSpillVisualization() {
     });
 
     var groupNames = Object.keys(groups).sort();
-    var colors = ['#1e40af', '#e05c2a', '#16a34a', '#9333ea', '#0891b2', '#dc2626', '#ca8a04', '#475569'];
+    var colors = ['#1e40af', '#c76a32', '#288577', '#88629f', '#397ca1', '#a54d49', '#a27618', '#687682'];
     var traces = groupNames.map(function (group, groupIndex) {
         var running = 0;
         var y = periods.map(function (period) {
@@ -989,7 +1034,7 @@ function updateSpillVisualization() {
         });
         return {
             type: 'scatter',
-            mode: 'lines+markers',
+            mode: 'lines',
             name: chartGroupLabel(group),
             x: periods.map(chartPeriodKey),
             y: y,
@@ -1017,7 +1062,7 @@ function updateSpillVisualization() {
 
     spillChartRevision++;
     Plotly.react(plot, traces, {
-        title: { text: metricInfo.title, x: 0.02, xanchor: 'left', font: { size: 16, color: '#1e293b' } },
+        title: { text: metricInfo.title, x: 0.02, xanchor: 'left', font: { size: 16, color: '#20262b' } },
         datarevision: spillChartRevision,
         paper_bgcolor: '#ffffff',
         plot_bgcolor: '#ffffff',
@@ -1027,7 +1072,7 @@ function updateSpillVisualization() {
         xaxis: {
             title: { text: 'Incident date', standoff: 10 },
             type: 'date',
-            gridcolor: '#e2e8f0',
+            gridcolor: '#e4e6e8',
             zeroline: false,
             tickformat: interval === 'year' ? '%Y' : '%b %Y',
             rangeslider: { visible: interval !== 'year', thickness: 0.08 }
@@ -1035,8 +1080,8 @@ function updateSpillVisualization() {
         yaxis: {
             title: { text: metricInfo.axis },
             rangemode: 'tozero',
-            gridcolor: '#e2e8f0',
-            zerolinecolor: '#cbd5e1'
+            gridcolor: '#e4e6e8',
+            zerolinecolor: '#c4c9ce'
         },
         legend: {
             orientation: 'h',
@@ -1044,9 +1089,9 @@ function updateSpillVisualization() {
             y: legendY,
             xanchor: 'left',
             yanchor: 'top',
-            font: { size: 10 }
+            font: { size: 12 }
         },
-        font: { family: 'Inter, sans-serif', size: 11, color: '#475569' }
+        font: { family: 'Inter, sans-serif', size: 12, color: '#4c555e' }
     }, {
         responsive: true,
         displaylogo: false,
@@ -1084,7 +1129,11 @@ document.addEventListener('opis:boundarychange', updateSpillVisualization);
 
 // Collapse/expand the filter panel
 document.getElementById('spill-filters-toggle').addEventListener('click', function () {
-    document.getElementById('spill-filters').classList.toggle('collapsed');
+    var controls = document.getElementById('spill-filter-controls');
+    var collapsed = !controls.hidden;
+    controls.hidden = collapsed;
+    document.getElementById('spill-filters').classList.toggle('collapsed', collapsed);
+    this.setAttribute('aria-expanded', String(!collapsed));
 });
 
 // Date inputs
@@ -1460,13 +1509,13 @@ function printOpisSummary() {
     reportWindow.document.write(
         '<!doctype html><html><head><meta charset="utf-8"><title>OPIS Map Summary</title>' +
         '<style>' +
-        'body{font-family:Arial,sans-serif;color:#1e293b;margin:40px;line-height:1.45}' +
-        'header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1e3a5f;padding-bottom:14px}' +
-        'h1{font-size:22px;margin:0}h2{font-size:14px;color:#1e40af;margin:24px 0 8px;text-transform:uppercase;letter-spacing:.6px}' +
-        '.meta{font-size:12px;color:#64748b}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}' +
-        '.card{border:1px solid #e2e8f0;border-radius:8px;padding:14px}.value{font-size:22px;font-weight:700}' +
-        'table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px;border-bottom:1px solid #e2e8f0}' +
-        '.actions{margin-top:24px}.actions button{padding:9px 16px;font-weight:700}@media print{.actions{display:none}body{margin:20px}}' +
+        'body{font-family:Arial,sans-serif;color:#20262b;margin:40px;line-height:1.45}' +
+        'header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #f5f6f7;padding-bottom:16px}' +
+        'h1{font-size: 22px;margin:0}h2{font-size: 14px;color:#1e40af;margin:24px 0 8px;text-transform: none;letter-spacing: 0}' +
+        '.meta{font-size: 12px;color:#68727d}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}' +
+        '.card{border:1px solid #e4e6e8;border-radius:8px;padding:16px}.value{font-size: 22px;font-weight: 600}' +
+        'table{width:100%;border-collapse:collapse;font-size: 12px}th,td{text-align:left;padding:8px;border-bottom:1px solid #e4e6e8}' +
+        '.actions{margin-top:24px}.actions button{padding:8px 16px;font-weight: 600}@media print{.actions{display:none}body{margin:20px}}' +
         '</style></head><body>' +
         '<header><div><h1>OPIS Map Summary</h1><div class="meta">Oil Pipeline Impact Simulator</div></div>' +
         '<div class="meta">Generated ' + escapeReportHtml(new Date().toLocaleString()) + '</div></header>' +
@@ -1606,9 +1655,9 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="sim-backdrop">
 <div id="sim-modal">
 <div class="sim-header">
-    <h3>Spill Cost Simulator</h3>
-    <div class="sim-subhead">OLS Regression Model: 2015&ndash;2024 PHMSA Data</div>
-    <button class="sim-close" id="sim-close-btn">&#x2715;</button>
+    <h3>Spill cost simulator</h3>
+    <div class="sim-subhead">Crude oil scenarios &middot; Fixed coefficients</div>
+    <button class="sim-close" id="sim-close-btn" aria-label="Close dialog">&#x2715;</button>
 </div>
 <div class="sim-body">
 
@@ -1630,14 +1679,14 @@ document.body.insertAdjacentHTML('beforeend', `
 
     <!-- Section: Scenario Inputs -->
     <div class="sim-section">
-    <p class="sim-section-label">Scenario Parameters</p>
+    <p class="sim-section-label">Scenario parameters</p>
     <div class="slider-row">
-        <label>Release Volume</label>
+        <label>Release volume</label>
         <input type="range" id="sim-bbls" min="1" max="500" value="50">
         <span class="slider-val" id="sim-bbls-val">50 bbls</span>
     </div>
 
-    <p class="sim-section-label" style="margin-top:10px">Facility &amp; Location</p>
+    <p class="sim-section-label" style="margin-top:12px">Facility &amp; location</p>
     <select id="sim-facility">
         <option value="interstate">Interstate Pipeline</option>
         <option value="intrastate">Intrastate Pipeline</option>
@@ -1649,7 +1698,7 @@ document.body.insertAdjacentHTML('beforeend', `
         <option value="underwater">Underwater / Crossing</option>
     </select>
 
-    <p class="sim-section-label" style="margin-top:10px">Risk Factors</p>
+    <p class="sim-section-label" style="margin-top:12px">Risk factors</p>
     <div class="check-grid">
         <label class="check-item">
         <input type="checkbox" id="sim-hipop">
@@ -1670,29 +1719,25 @@ document.body.insertAdjacentHTML('beforeend', `
     </div>
     </div>
 
-    <button id="sim-run-btn">Run Cost Simulation</button>
+    <button id="sim-run-btn">Estimate spill cost</button>
 
     <!-- Results -->
     <div id="sim-results">
     <div class="result-main">
-        <div class="result-label">Estimated Cost (2024 USD)</div>
+        <div class="result-label">Estimated cost (2024 USD)</div>
         <div class="result-cost" id="res-cost">Not calculated</div>
-        <div class="result-ci" id="res-ci">Approximate 95% Interval: <strong>Not calculated</strong></div>
+        <div class="result-ci" id="res-ci">Illustrative interval: <strong>Not calculated</strong></div>
     </div>
 
-    <p class="breakdown-title">Estimated Cost Breakdown</p>
+    <p class="breakdown-title">Estimated cost breakdown</p>
     <div id="res-breakdown"></div>
 
-    <p class="breakdown-title" style="margin-top:12px">Key Cost Drivers</p>
+    <p class="breakdown-title" style="margin-top:12px">Key cost drivers</p>
     <div class="drivers-row" id="res-drivers"></div>
 
     <p class="sim-disclaimer">
-        This simulation uses an OLS regression model trained on 2015&ndash;2024 PHMSA
-        crude oil incident reports, inflation-adjusted to 2024 USD. Results
-        provide a back-transformed log-scale estimate for incidents with similar
-        characteristics: not a guarantee. The approximate interval applies the
-        same fixed log-scale standard error to every scenario and is not an
-        individual-incident prediction range.
+        Costs are in 2024 dollars. Every estimate assumes 50 years of equipment age.
+        The illustrative interval uses the same margin on the log scale for every scenario. Actual spill costs can fall outside that interval.
     </p>
     </div>
 
@@ -1701,25 +1746,25 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>
 `);
 
-// Embedded OLS Regression Model:
-// Coefficients derived from PHMSA crude oil incident data (2015-2024)
+// Embedded model constants. The original source identifies PHMSA crude oil
+// incidents (2015-2024) as training data. No fit artifact accompanies this checkout.
 // Dependent variable: log1p(ADJUSTED_COST)
-// R-squared_adj ~ 0.61, N ~ 2,400 incidents
+// Reported, unverified metadata: R-squared_adj ~ 0.61, N ~ 2,400 incidents.
 var OLS = {
     intercept: 9.42,   // baseline ~$12,300
     age: 0.0118, // per year of equipment age
-    log_bbls: 0.847,  // primary volume driver
+    log_bbls: 0.847,  // coefficient on log1p of release volume
     high_pop: 0.542,  // high pop area premium
     water_contam: 0.793,  // water contamination cost
     surface_remed: 0.618,  // surface remediation cost
     water_crossing: 0.312,  // crossing multiplier
     aboveground: -0.287,  // above ground cheaper to remediate
     underwater: 0.445,  // underwater incidents more expensive
-    interstate: 0.148,  // interstate regulatory burden
+    interstate: 0.148,  // interstate facility indicator
     intrastate: 0.045,  // intrastate (moderate)
     // gathering: 0 (reference category)
     se_mean: 0.078,  // fixed log-scale error used for the approximate interval
-    // State fixed effects (relative to national mean = 0)
+    // State adjustments on the logarithmic cost scale
     states: {
         AL: -0.15, AK: 0.45, AZ: 0.10, AR: -0.20, CA: 0.55, CO: 0.20, CT: 0.35,
         DE: 0.30, FL: 0.25, GA: -0.10, HI: 0.50, ID: 0.05, IL: 0.15, IN: -0.05,
@@ -1731,7 +1776,7 @@ var OLS = {
     }
 };
 
-// Cost breakdown proportions (from PHMSA cost category analysis)
+// Fixed display shares. Their derivation is absent from this checkout.
 var COST_SPLIT = {
     'Operator Paid': { pct: 0.38, color: '#4a9eca' },
     'Property Damage': { pct: 0.22, color: '#e05c2a' },
@@ -1963,7 +2008,7 @@ document.getElementById('sim-run-btn').addEventListener('click', function () {
 
     document.getElementById('res-cost').textContent = fmt(predCost);
     document.getElementById('res-ci').innerHTML =
-        'Approximate 95% Interval: <strong>' +
+        'Illustrative interval: <strong>' +
         fmt(lowerMean) + ' to ' + fmt(upperMean) + '</strong>';
 
     // Cost breakdown bars
@@ -2046,7 +2091,7 @@ function toggleSpillSeverity(useGradient) {
                 return {
                     radius: Math.max(3.5, Math.log1p(bbls) * 2.2),
                     fillColor: getGradientColor(bbls),
-                    color: "#0f172a",
+                    color: "#20262b",
                     weight: 0.7,
                     opacity: 0.85,
                     fillOpacity: 0.8
@@ -2073,4 +2118,14 @@ document.getElementById('severity-toggle-container').addEventListener('click', f
         // Trigger the manual update function with the new state
         toggleSpillSeverity(checkbox.checked);
     }
+});
+
+
+// Space and Enter activate the map's existing layer and filter controls.
+document.querySelectorAll('#pipeline-list li').forEach(function (control) {
+    control.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        control.click();
+    });
 });

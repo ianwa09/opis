@@ -4,9 +4,10 @@
 -->
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -20,12 +21,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
     <link rel="stylesheet" href="css/leaflet-custom.css">
     <link rel="stylesheet" href="css/main-ui.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />            
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
         L_NO_TOUCH = false;
         L_DISABLE_3D = false;
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="shortcut icon" type="image/png" href="opis-logo.png">
     <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
 
@@ -186,7 +187,7 @@
         function geo_json_4b1d758048ef739b6042e56e6cc670cd_styler(feature) {
             switch(feature.id) {
                 default:
-                    return {"color": "#ff7800", "opacity": 0.7, "weight": 1.5};
+                    return {"color": "#c76a32", "opacity": 0.7, "weight": 1.5};
             }
         }
 
@@ -196,10 +197,10 @@
                     openSimulator(feature.properties, e.latlng);
                 },
                 mouseover: function(e) {
-                    e.target.setStyle({weight: 3.5, opacity: 1, color: '#ffb347'});
+                    e.target.setStyle({weight: 3.5, opacity: 1, color: '#a7471b'});
                 },
                 mouseout: function(e) {
-                    e.target.setStyle({weight: 1.5, opacity: 0.7, color: '#ff7800'});
+                    e.target.setStyle({weight: 1.5, opacity: 0.7, color: '#c76a32'});
                 }
             });
         };
@@ -269,7 +270,7 @@
         function geo_json_9a5a8321701a3d88a35c68c0fc9c3769_styler(feature) {
             switch(feature.id) {
                 default:
-                    return {"color": "#00ff00", "opacity": 0.7, "weight": 1.5};
+                    return {"color": "#397ca1", "opacity": 0.7, "weight": 1.5};
             }
         }
 
@@ -344,7 +345,7 @@
         function geo_json_90c4b8a9f122b1ea491be72c37d83408_styler(feature) {
             switch(feature.properties.fid) {
                 default:
-                    return {"color": "#0000ff", "opacity": 0.7, "weight": 1.5};
+                    return {"color": "#88629f", "opacity": 0.7, "weight": 1.5};
             }
         }
 
@@ -419,7 +420,7 @@
         function geo_json_eb363b4d3f65896b9b385e5518c884e6_styler(feature) {
             switch(feature.id) {
                 default:
-                    return {"color": "#ffff00", "opacity": 0.7, "weight": 1.5};
+                    return {"color": "#a27618", "opacity": 0.7, "weight": 1.5};
             }
         }
 
@@ -495,7 +496,7 @@
         function geo_json_8612f9cc589b10bf76787f9aa4f0fd37_styler(feature) {
             switch(feature.properties.OBJECTID) {
                 default:
-                    return {"color": "#00ffff", "opacity": 0.7, "weight": 1.5};
+                    return {"color": "#288577", "opacity": 0.7, "weight": 1.5};
             }
         }
 
@@ -578,7 +579,7 @@
   "dashArray": null,
   "dashOffset": null,
   "fill": true,
-  "fillColor": "#434343",
+  "fillColor": "#a54d49",
   "fillOpacity": 0.8,
   "fillRule": "evenodd",
   "bubblingMouseEvents": true,
@@ -668,7 +669,7 @@
   "dashArray": null,
   "dashOffset": null,
   "fill": true,
-  "fillColor": "#ff00ff",
+  "fillColor": "#687682",
   "fillOpacity": 0.8,
   "fillRule": "evenodd",
   "bubblingMouseEvents": true,
@@ -928,13 +929,13 @@
                 'Petroleum Terminals':  feature_group_e4a7cd78a21b50f69a050c24ccfdfa61,
             };
             var pipelineColors = {
-                'Crude Oil':          '#e05c2a',
-                'Natural Gas':        '#4a9eca',
-                'Petroleum Product':  '#9b59b6',
-                'Hydrocarbon Gas Liquids': '#ffff00',
-                'Submarine':          '#1abc9c',
-                'POL Storage Tanks':  '#e74c3c',
-                'Petroleum Terminals': '#95a5a6',
+                'Crude Oil':          '#c76a32',
+                'Natural Gas':        '#397ca1',
+                'Petroleum Product':  '#88629f',
+                'Hydrocarbon Gas Liquids': '#a27618',
+                'Submarine':          '#288577',
+                'POL Storage Tanks':  '#a54d49',
+                'Petroleum Terminals': '#687682',
             };
             var activePipeline = null;
 
@@ -954,19 +955,19 @@
             var panelHTML = `
             <!-- ── Top header bar ── -->
             <div id="top-header">
-              <img src="opis-logo.png" alt="OPIS Logo" style="height: 50px; width: auto; object-fit: contain;">              
+              <img src="opis-logo.png" alt="OPIS — Oil Pipeline Impact Simulator" class="opis-logo">
               <span class="header-divider"></span>
               <span class="header-sub">Oil Pipeline Impact Simulator</span>
               <div class="header-right">
-                <span class="header-badge">Created by students at the Illinois Math and Science Academy. Data sourced from: PHMSA &middot; EIA &middot; DataLumos</span>
-                <button id="contact-btn" aria-label="Contact"><i class="bi bi-envelope-fill"></i><span class="contact-label">Contact</span></button>
+                <span class="header-badge" title="Made by students from the Illinois Math and Science Academy. Data sourced from PHMSA, EIA, and DataLumos">Made by students from the Illinois Math and Science Academy &middot; Sources: PHMSA &middot; EIA &middot; DataLumos</span>
+                <button id="contact-btn" aria-label="Contact"><i class="bi bi-envelope"></i><span class="contact-label">Contact</span></button>
                 <button id="tutorial-btn" aria-label="How to use this tool">
-                  <span aria-hidden="true">&#9432;</span>
-                  <span class="tutorial-label">How to use this tool</span>
+                  <i class="bi bi-question-circle" aria-hidden="true"></i>
+                  <span class="tutorial-label">How to use</span>
                   <span class="tutorial-label-short">Help</span>
                 </button>
                 <button id="meth-btn" aria-label="Data Methodology and Appendix" title="Data Methodology and Appendix">
-                  <i class="bi bi-file-earmark-text"></i><span>Data Methodology &amp; Appendix</span>
+                  <i class="bi bi-file-earmark-text"></i><span>Methodology</span>
                 </button>
               </div>
             </div>
@@ -981,7 +982,7 @@
               </div>
               <div class="tab-row">
                 <button class="tab-btn active" data-tab="pipelines">Pipelines</button>
-                <button class="tab-btn"        data-tab="spills">Spill History</button>
+                <button class="tab-btn"        data-tab="spills">Spill history</button>
               </div>
 
               <!-- ── PIPELINES TAB ── -->
@@ -993,10 +994,10 @@
                   <button class="bm-btn active" data-bm="Street">Street</button>
                 </div>
 
-                <p class="section-label">Pipeline Type <span style="color:#cbd5e1;font-size:8.5px;text-transform:none;letter-spacing:0;font-weight:400">(select one to load)</span></p>
-                <ul class="pipeline-list" id="pipeline-list">
+                <p class="section-label">Pipeline type <span class="section-hint">Select one layer</span></p>
+                <ul class="pipeline-list" id="pipeline-list" aria-label="Pipeline layers">
                   ${Object.keys(pipelineLayers).map(name => `
-                  <li data-layer="${name}">
+                  <li data-layer="${name}" role="button" tabindex="0" aria-pressed="false" aria-label="Show ${name} layer">
                     <span class="radio-dot"></span>
                     <span class="swatch" style="background:${pipelineColors[name]}"></span>
                     <span class="pl-name">${name}</span>
@@ -1009,22 +1010,22 @@
               <div class="tab-pane" id="tab-spills">
                 <div class="spills-toggle" id="spills-toggle">
                 <div>
-                    <div class="spills-title">Hazardous Liquid Spills</div>
+                    <div class="spills-title">Hazardous liquid spills</div>
                     <div class="spills-subtitle">Historical incident data</div>
                 </div>
                 <label class="toggle-switch" onclick="event.stopPropagation()">
-                    <input type="checkbox" id="spills-checkbox">
+                    <input type="checkbox" id="spills-checkbox" aria-label="Show hazardous liquid spills">
                     <span class="slider"></span>
                 </label>
                 </div>
 
-                <div class="spills-toggle" id="severity-toggle-container" style="margin-top: 8px; opacity: 0.5; pointer-events: none; transition: all 0.2s;">
+                <div class="spills-toggle" id="severity-toggle-container" style="margin-top: 8px; opacity: 0.5; pointer-events: none; transition: opacity 160ms;">
                 <div>
-                    <div class="spills-title" style="font-size: 13px;">Color by Spill Severity</div>
-                    <div class="spills-subtitle" style="font-size: 11px;">Apply gradient and size scaling</div>
+                    <div class="spills-title" style="font-size: 13px;">Show spill severity</div>
+                    <div class="spills-subtitle" style="font-size: 11px;">Color and size by release volume</div>
                 </div>
                 <label class="toggle-switch" onclick="event.stopPropagation()">
-                    <input type="checkbox" id="severity-gradient-checkbox" onchange="toggleSpillSeverity(this.checked)">
+                    <input type="checkbox" id="severity-gradient-checkbox" aria-label="Show spill severity" disabled onchange="toggleSpillSeverity(this.checked)">
                     <span class="slider"></span>
                 </label>
                 </div>
@@ -1036,18 +1037,18 @@
                 </p>
 
                 <div id="spill-filters">
-                  <div class="filters-header" id="spill-filters-toggle">
-                    <p class="section-label" style="margin:0;">Filter Spills</p>
-                    <span class="filters-chevron">&#9662;</span>
-                  </div>
-                  <div class="filters-body">
+                  <button type="button" class="filters-header" id="spill-filters-toggle" aria-expanded="true" aria-controls="spill-filter-controls">
+                    <span class="section-label">Filter spills</span>
+                    <span class="filters-chevron" aria-hidden="true">&#9662;</span>
+                  </button>
+                  <div class="filters-body" id="spill-filter-controls">
 
                     <div>
-                      <p class="filter-group-label">Date Range</p>
+                      <p class="filter-group-label">Date range</p>
                       <div class="date-range-row">
-                        <input type="date" id="filter-date-start">
+                        <input type="date" id="filter-date-start" aria-label="Start date">
                         <span>&ndash;</span>
-                        <input type="date" id="filter-date-end">
+                        <input type="date" id="filter-date-end" aria-label="End date">
                       </div>
                       <div id="spill-timelapse">
                         <button type="button" id="spill-timelapse-play" aria-label="Play spill timeline" title="Play spill timeline">
@@ -1055,7 +1056,10 @@
                         </button>
                         <div class="spill-timelapse-track">
                           <input type="range" id="spill-timelapse-range" min="0" max="1" value="1" disabled>
-                          <div id="spill-timelapse-status">Loading timeline...</div>
+                          <div id="spill-timelapse-status">
+                            <span id="spill-timelapse-date">Loading timeline</span>
+                            <span id="spill-timelapse-detail"></span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1095,7 +1099,7 @@
                     </div>
 
                     <div>
-                      <p class="filter-group-label">Minimum Volume (Bbls)</p>
+                      <p class="filter-group-label">Minimum volume (bbl)</p>
                       <div class="pill-row" id="filter-volume-pills">
                         <button type="button" class="filter-pill active" data-min-bbls="0">Any</button>
                         <button type="button" class="filter-pill" data-min-bbls="10">10+</button>
@@ -1116,18 +1120,18 @@
                     </div>
 
                     <button type="button" id="spill-chart-btn">
-                      <i class="bi bi-graph-up"></i> Visualize Filtered Spill Data
+                      <i class="bi bi-graph-up"></i> Chart filtered spills
                     </button>
 
                     <button id="spill-filters-reset">&#x2715; Reset filters</button>
 
                     <div id="export-share-tools">
-                      <p class="filter-group-label">Export &amp; Share</p>
+                      <p class="filter-group-label">Export &amp; share</p>
                       <div class="export-share-grid">
                         <button type="button" id="export-spills-csv"><i class="bi bi-filetype-csv"></i>CSV</button>
                         <button type="button" id="export-spills-geojson"><i class="bi bi-braces"></i>GeoJSON</button>
-                        <button type="button" id="copy-share-link"><i class="bi bi-link-45deg"></i>Copy Link</button>
-                        <button type="button" id="print-map-summary"><i class="bi bi-printer"></i>Print Summary</button>
+                        <button type="button" id="copy-share-link"><i class="bi bi-link-45deg"></i>Copy link</button>
+                        <button type="button" id="print-map-summary"><i class="bi bi-printer"></i>Print</button>
                       </div>
                     </div>
                   </div>
@@ -1137,11 +1141,11 @@
 
               <!-- ── Selected layer footer ── -->
               <div id="selected-layer-strip">
-                <div class="strip-label">Selected Layer</div>
-                <div class="strip-name none" id="strip-name-text">None selected</div>
+                <div class="strip-label">Selected layer</div>
+                <div class="strip-name none" id="strip-name-text" aria-live="polite">None selected</div>
               </div>
             </div>
-            <div id="map-toast">Loading…</div>
+            <div id="map-toast" role="status" aria-live="polite">Loading…</div>
             `;
 
             document.body.insertAdjacentHTML('beforeend', panelHTML);
@@ -1209,7 +1213,7 @@
             // instruction banner
             document.body.insertAdjacentHTML('beforeend', `
             <div id="instruction-banner">
-              <span><strong>Select the crude oil layer</strong> in the panel, then <strong>click any line</strong> to run the Spill Cost Simulator</span>
+              <span>Select <strong>Crude Oil</strong>, then click a pipeline to estimate spill costs</span>
               <button id="instruction-banner-close" type="button" aria-label="Close instructions">&#x2715;</button>
             </div>
             `);
