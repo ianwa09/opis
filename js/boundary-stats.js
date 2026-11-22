@@ -284,54 +284,54 @@ window.addEventListener('load', function() {
 
         // 6. Build the readout popup card layout
         const popupContent = `
-            <div style="font-family: 'Inter', -apple-system, sans-serif; min-width: 260px; padding: 4px; color: #20262b;">
+            <div style="font-family: 'Inter', -apple-system, sans-serif; min-width: 260px; padding: 4px; color: var(--opis-ink);">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: #20262b; letter-spacing: 0;">Boundary analysis</h4>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--opis-ink); letter-spacing: 0;">Boundary analysis</h4>
                 </div>
-                <div style="background-color: #f5f6f7; border: 1px solid #e4e6e8; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
-                    <div style="font-size: 12px; font-weight: 600; color: #68727d; text-transform: none; letter-spacing: 0; margin-bottom: 8px;">Infrastructure in zone</div>
-                    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #4c555e;">
+                <div style="background-color: var(--opis-surface); border: 1px solid var(--opis-line); border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--opis-muted); text-transform: none; letter-spacing: 0; margin-bottom: 8px;">Infrastructure in zone</div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--opis-secondary);">
                         <div class="crossings-hover-row" style="display: flex; justify-content: space-between; cursor: help;">
-                            <span style="color: #68727d; border-bottom: 1px dotted #c4c9ce;">Pipeline crossings</span>
-                            <span style="font-weight: 600; color: #20262b;">${intersectingPipelinesCount}</span>
+                            <span style="color: var(--opis-muted); border-bottom: 1px dotted var(--opis-control-line);">Pipeline crossings</span>
+                            <span style="font-weight: 600; color: var(--opis-ink);">${intersectingPipelinesCount}</span>
                         </div>
                         <div class="mileage-hover-row" tabindex="0" aria-label="Estimated mapped mileage by pipeline type" style="display: flex; justify-content: space-between; cursor: help;">
-                            <span style="color: #68727d; border-bottom: 1px dotted #c4c9ce;">Est. mapped mileage</span>
-                            <span style="font-weight: 600; color: #20262b;">${totalLengthMiles.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} mi</span>
+                            <span style="color: var(--opis-muted); border-bottom: 1px dotted var(--opis-control-line);">Est. mapped mileage</span>
+                            <span style="font-weight: 600; color: var(--opis-ink);">${totalLengthMiles.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} mi</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #68727d;">Active operators</span>
-                            <span style="font-weight: 600; color: #20262b;">${uniqueOperators.size}</span>
+                            <span style="color: var(--opis-muted);">Active operators</span>
+                            <span style="font-weight: 600; color: var(--opis-ink);">${uniqueOperators.size}</span>
                         </div>
                     </div>
-                    <div style="margin-top: 8px; font-size: 12px; line-height: 1.4; color: #68727d;">All mapped types; coverage is incomplete.${mileageWarning ? ' ' + mileageWarning : ''}</div>
+                    <div style="margin-top: 8px; font-size: 12px; line-height: 1.4; color: var(--opis-muted);">All mapped types; coverage is incomplete.${mileageWarning ? ' ' + mileageWarning : ''}</div>
                 </div>
-                <div style="background-color: #fdf2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 12px;">
-                    <div style="font-size: 12px; font-weight: 600; color: #991b1b; text-transform: none; letter-spacing: 0; margin-bottom: 8px;">Incident history</div>
-                    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #7f1d1d;">
+                <div style="background-color: var(--opis-boundary-incident-surface); border: 1px solid var(--opis-boundary-incident-border); border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 12px; font-weight: 600; color: var(--opis-boundary-incident-label); text-transform: none; letter-spacing: 0; margin-bottom: 8px;">Incident history</div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--opis-boundary-incident-ink);">
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #991b1b; opacity: 0.8;">Total incidents</span>
-                            <span style="font-weight: 600; color: #7f1d1d;">${totalSpillsInZone}</span>
+                            <span style="color: var(--opis-boundary-incident-label); opacity: 0.8;">Total incidents</span>
+                            <span style="font-weight: 600; color: var(--opis-boundary-incident-ink);">${totalSpillsInZone}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #991b1b; opacity: 0.8;">Total volume spilled</span>
-                            <span style="font-weight: 600; color: #7f1d1d;">${totalBarrelsSpilled.toLocaleString(undefined, {maximumFractionDigits: 1})} bbls</span>
+                            <span style="color: var(--opis-boundary-incident-label); opacity: 0.8;">Total volume spilled</span>
+                            <span style="font-weight: 600; color: var(--opis-boundary-incident-ink);">${totalBarrelsSpilled.toLocaleString(undefined, {maximumFractionDigits: 1})} bbls</span>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #991b1b; opacity: 0.8;">Average spill size</span>
-                            <span style="font-weight: 600; color: #7f1d1d;">${avgSpillVolume.toFixed(1)} bbls</span>
+                            <span style="color: var(--opis-boundary-incident-label); opacity: 0.8;">Average spill size</span>
+                            <span style="font-weight: 600; color: var(--opis-boundary-incident-ink);">${avgSpillVolume.toFixed(1)} bbls</span>
                         </div>
-                        <div class="cause-hover-row" style="border-top: 1px dashed #fca5a5; margin: 4px 0; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; cursor: help;">
-                            <span style="color: #991b1b; opacity: 0.8; font-size: 12px; border-bottom: 1px dotted #fca5a5;">Primary cause</span>
-                            <span style="font-size: 12px; font-weight: 600; background-color: #fee2e2; padding: 2px 8px; border-radius: 4px; color: #991b1b; text-transform: none;">${topCause}</span>
+                        <div class="cause-hover-row" style="border-top: 1px dashed var(--opis-danger-line); margin: 4px 0; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; cursor: help;">
+                            <span style="color: var(--opis-boundary-incident-label); opacity: 0.8; font-size: 12px; border-bottom: 1px dotted var(--opis-danger-line);">Primary cause</span>
+                            <span style="font-size: 12px; font-weight: 600; background-color: var(--opis-boundary-incident-border); padding: 2px 8px; border-radius: 4px; color: var(--opis-boundary-incident-label); text-transform: none;">${topCause}</span>
                         </div>
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
-                    <button type="button" onclick="window.exportOpisBoundary(${boundaryExportId}, 'csv')" style="padding: 8px; border: 1px solid #c4c9ce; border-radius: 6px; background: #f5f6f7; color: #4c555e; font-size: 12px; font-weight: 600; cursor: pointer;">
+                    <button type="button" onclick="window.exportOpisBoundary(${boundaryExportId}, 'csv')" style="padding: 8px; border: 1px solid var(--opis-control-line); border-radius: 6px; background: var(--opis-surface); color: var(--opis-secondary); font-size: 12px; font-weight: 600; cursor: pointer;">
                         <i class="bi bi-filetype-csv"></i> Export CSV
                     </button>
-                    <button type="button" onclick="window.exportOpisBoundary(${boundaryExportId}, 'json')" style="padding: 8px; border: 1px solid #c4c9ce; border-radius: 6px; background: #f5f6f7; color: #4c555e; font-size: 12px; font-weight: 600; cursor: pointer;">
+                    <button type="button" onclick="window.exportOpisBoundary(${boundaryExportId}, 'json')" style="padding: 8px; border: 1px solid var(--opis-control-line); border-radius: 6px; background: var(--opis-surface); color: var(--opis-secondary); font-size: 12px; font-weight: 600; cursor: pointer;">
                         <i class="bi bi-braces"></i> Export JSON
                     </button>
                 </div>
@@ -343,7 +343,7 @@ window.addEventListener('load', function() {
         if (!mouseTooltip) {
             mouseTooltip = document.createElement('div');
             mouseTooltip.id = 'crossings-mouse-tooltip';
-            mouseTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: #ffffff; border: 1px solid #e4e6e8; border-radius: 8px; padding: 12px; width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: #20262b;";
+            mouseTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: var(--opis-panel); border: 1px solid var(--opis-line); border-radius: 8px; padding: 12px; width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: var(--opis-ink);";
             document.body.appendChild(mouseTooltip);
         }
 
@@ -352,7 +352,7 @@ window.addEventListener('load', function() {
             mileageTooltip = document.createElement('div');
             mileageTooltip.id = 'mileage-mouse-tooltip';
             mileageTooltip.setAttribute('role', 'tooltip');
-            mileageTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: #ffffff; border: 1px solid #e4e6e8; border-radius: 8px; padding: 12px; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: #20262b;";
+            mileageTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: var(--opis-panel); border: 1px solid var(--opis-line); border-radius: 8px; padding: 12px; width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: var(--opis-ink);";
             document.body.appendChild(mileageTooltip);
         }
 
@@ -360,7 +360,7 @@ window.addEventListener('load', function() {
         if (!causeTooltip) {
             causeTooltip = document.createElement('div');
             causeTooltip.id = 'cause-mouse-tooltip';
-            causeTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: #ffffff; border: 1px solid #fee2e2; border-radius: 8px; padding: 12px; width: 230px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: #20262b;";
+            causeTooltip.style.cssText = "position: fixed; z-index: 10000; display: none; pointer-events: none; background: var(--opis-panel); border: 1px solid var(--opis-boundary-incident-border); border-radius: 8px; padding: 12px; width: 230px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-family: 'Inter', -apple-system, sans-serif; color: var(--opis-ink);";
             document.body.appendChild(causeTooltip);
         }
         
@@ -368,12 +368,12 @@ window.addEventListener('load', function() {
         function pipelineBreakdownHtml(title, breakdown, formatValue) {
             const maxValue = Math.max(...Object.values(breakdown), 1);
             return `
-                <div style="font-size: 12px; font-weight: 600; color: #68727d; text-transform: none; letter-spacing: 0; margin-bottom: 8px;">${title}</div>
+                <div style="font-size: 12px; font-weight: 600; color: var(--opis-muted); text-transform: none; letter-spacing: 0; margin-bottom: 8px;">${title}</div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     ${Object.entries(breakdown).map(([category, value], i) => `
                         <div>
-                            <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 2px;"><span>${category}</span><span style="font-weight: 600; color: #20262b; white-space: nowrap;">${formatValue(value)}</span></div>
-                            <div style="width: 100%; height: 6px; background: #eef0f2; border-radius: 3px; overflow: hidden;"><div style="width: ${(value / maxValue) * 100}%; height: 100%; background: ${pipelineColors[i]};"></div></div>
+                            <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; margin-bottom: 2px;"><span>${category}</span><span style="font-weight: 600; color: var(--opis-ink); white-space: nowrap;">${formatValue(value)}</span></div>
+                            <div style="width: 100%; height: 6px; background: var(--opis-hover); border-radius: 3px; overflow: hidden;"><div style="width: ${(value / maxValue) * 100}%; height: 100%; background: ${pipelineColors[i]};"></div></div>
                         </div>`).join('')}
                 </div>`;
         }
@@ -384,16 +384,16 @@ window.addEventListener('load', function() {
 
         const sortedCauses = Object.entries(spillCauses).sort((a, b) => b[1] - a[1]);
         const maxCauseVal = sortedCauses.length > 0 ? sortedCauses[0][1] : 1;
-        const causeColors = ['#b91c1c', '#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fecaca'];
+        const causeColors = ['#b91c1c', '#dc2626', '#ef4444', '#f87171', 'var(--opis-danger-line)', '#fecaca'];
         causeTooltip.innerHTML = `
-            <div style="font-size: 12px; font-weight: 600; color: #68727d; text-transform: none; letter-spacing: 0; margin-bottom: 8px;">Incidents by cause</div>
+            <div style="font-size: 12px; font-weight: 600; color: var(--opis-muted); text-transform: none; letter-spacing: 0; margin-bottom: 8px;">Incidents by cause</div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 ${sortedCauses.length === 0
-                    ? '<div style="font-size: 12px; color: #68727d;">No incidents in zone</div>'
+                    ? '<div style="font-size: 12px; color: var(--opis-muted);">No incidents in zone</div>'
                     : sortedCauses.map(([cause, count], i) => `
                         <div>
-                            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;"><span style="font-weight: 500;">${cause}</span><span style="font-weight: 600; color: #20262b;">${count}</span></div>
-                            <div style="width: 100%; height: 6px; background: #eef0f2; border-radius: 3px; overflow: hidden;"><div style="width: ${(count / maxCauseVal) * 100}%; height: 100%; background: ${causeColors[Math.min(i, causeColors.length - 1)]};"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;"><span style="font-weight: 500;">${cause}</span><span style="font-weight: 600; color: var(--opis-ink);">${count}</span></div>
+                            <div style="width: 100%; height: 6px; background: var(--opis-hover); border-radius: 3px; overflow: hidden;"><div style="width: ${(count / maxCauseVal) * 100}%; height: 100%; background: ${causeColors[Math.min(i, causeColors.length - 1)]};"></div></div>
                         </div>`).join('')
                 }
             </div>

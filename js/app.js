@@ -248,8 +248,9 @@ document.body.insertAdjacentHTML('beforeend', `
     <button class="meth-close" id="meth-close-btn" aria-label="Close dialog">&#x2715;</button>
 </div>
 <div class="meth-body">
-    <div style="display: flex; justify-content: center; align-items: center;">
-        <img src="opis-logo.png" alt="OPIS Logo" style="height: 200px; width: auto; object-fit: contain;">
+    <div class="meth-logo">
+        <img src="opis-logo.png" alt="OPIS Logo" class="opis-logo opis-logo-light">
+        <img src="opis-logo-dark.png" alt="OPIS Logo" class="opis-logo opis-logo-dark">
     </div>
     <div class="meth-section">
     <div class="meth-section-title">1. Pipeline network data</div>
@@ -960,7 +961,7 @@ function getSpillChartFeatures() {
     });
 }
 
-function updateSpillVisualization() {
+function updateSpillVisualization(preserveView) {
     var backdrop = document.getElementById('chart-backdrop');
     if (!backdrop || !backdrop.classList.contains('open')) return;
 
@@ -1020,8 +1021,15 @@ function updateSpillVisualization() {
         groups[group][period].push(feature);
     });
 
+    var theme = getComputedStyle(document.documentElement);
+    var panelColor = theme.getPropertyValue('--opis-panel').trim();
+    var textColor = theme.getPropertyValue('--opis-secondary').trim();
+    var gridColor = theme.getPropertyValue('--opis-line').trim();
     var groupNames = Object.keys(groups).sort();
-    var colors = ['#1e40af', '#c76a32', '#288577', '#88629f', '#397ca1', '#a54d49', '#a27618', '#687682'];
+    var colors = [
+        theme.getPropertyValue('--opis-accent').trim(),
+        '#c76a32', '#288577', '#88629f', '#397ca1', '#a54d49', '#a27618', '#687682'
+    ];
     var traces = groupNames.map(function (group, groupIndex) {
         var running = 0;
         var y = periods.map(function (period) {
@@ -1060,28 +1068,30 @@ function updateSpillVisualization() {
         ? (compactChart ? -0.68 : -0.48)
         : (compactChart ? -0.48 : -0.3);
 
-    spillChartRevision++;
+    if (preserveView !== true) spillChartRevision++;
     Plotly.react(plot, traces, {
-        title: { text: metricInfo.title, x: 0.02, xanchor: 'left', font: { size: 16, color: '#20262b' } },
+        title: { text: metricInfo.title, x: 0.02, xanchor: 'left', font: { size: 16, color: theme.getPropertyValue('--opis-ink').trim() } },
         datarevision: spillChartRevision,
-        paper_bgcolor: '#ffffff',
-        plot_bgcolor: '#ffffff',
+        uirevision: spillChartRevision,
+        paper_bgcolor: panelColor,
+        plot_bgcolor: panelColor,
         margin: { l: 72, r: 24, t: 50, b: bottomMargin },
         hovermode: 'x unified',
+        hoverlabel: { bgcolor: panelColor, font: { color: textColor } },
         hoversort: 'value descending',
         xaxis: {
             title: { text: 'Incident date', standoff: 10 },
             type: 'date',
-            gridcolor: '#e4e6e8',
+            gridcolor: gridColor,
             zeroline: false,
             tickformat: interval === 'year' ? '%Y' : '%b %Y',
-            rangeslider: { visible: interval !== 'year', thickness: 0.08 }
+            rangeslider: { visible: interval !== 'year', thickness: 0.08, bgcolor: panelColor }
         },
         yaxis: {
             title: { text: metricInfo.axis },
             rangemode: 'tozero',
-            gridcolor: '#e4e6e8',
-            zerolinecolor: '#c4c9ce'
+            gridcolor: gridColor,
+            zerolinecolor: theme.getPropertyValue('--opis-control-line').trim()
         },
         legend: {
             orientation: 'h',
@@ -1091,7 +1101,7 @@ function updateSpillVisualization() {
             yanchor: 'top',
             font: { size: 12 }
         },
-        font: { family: 'Inter, sans-serif', size: 12, color: '#4c555e' }
+        font: { family: 'Inter, sans-serif', size: 12, color: textColor }
     }, {
         responsive: true,
         displaylogo: false,
@@ -1104,6 +1114,10 @@ function updateSpillVisualization() {
         }
     });
 }
+
+document.addEventListener('opis-theme-change', function () {
+    updateSpillVisualization(true);
+});
 
 function openSpillVisualization() {
     closeAllModals();

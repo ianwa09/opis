@@ -8,6 +8,7 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <script src="js/theme.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -955,7 +956,8 @@
             var panelHTML = `
             <!-- ── Top header bar ── -->
             <div id="top-header">
-              <img src="opis-logo.png" alt="OPIS — Oil Pipeline Impact Simulator" class="opis-logo">
+              <img src="opis-logo.png" alt="OPIS — Oil Pipeline Impact Simulator" class="opis-logo opis-logo-light">
+              <img src="opis-logo-dark.png" alt="OPIS — Oil Pipeline Impact Simulator" class="opis-logo opis-logo-dark">
               <span class="header-divider"></span>
               <span class="header-sub">Oil Pipeline Impact Simulator</span>
               <div class="header-attribution">
@@ -970,6 +972,10 @@
                 </button>
                 <button id="meth-btn" aria-label="Data Methodology and Appendix" title="Data Methodology and Appendix">
                   <i class="bi bi-file-earmark-text"></i><span>Methodology</span>
+                </button>
+                <button id="theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false" title="Dark mode">
+                  <i class="bi bi-moon" aria-hidden="true"></i>
+                  <i class="bi bi-sun" aria-hidden="true"></i>
                 </button>
               </div>
             </div>
