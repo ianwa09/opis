@@ -37,11 +37,11 @@ color: #68727d;
 font-weight: 400;
 }
 #top-header .header-right {
-margin-left: auto;
+margin-left: 12px;
 display: flex;
 align-items: center;
 gap: 12px;
-min-width: 0;
+flex-shrink: 0;
 justify-content: flex-end;
 }
 #tutorial-btn {
@@ -64,14 +64,15 @@ box-sizing: border-box;
 line-height: 1;
 }
 #tutorial-btn:hover { background: #1d3a9e; }
-#tutorial-btn .tutorial-label-short { display: none; }
-#top-header .header-badge {
-font-size: 12px;
-color: #68727d;
-letter-spacing: 0;
-min-width: 0;
-overflow: hidden;
-text-overflow: ellipsis;
+#top-header .header-attribution {
+margin-left: auto;
+display: flex;
+flex-shrink: 0;
+align-items: center;
+gap: 12px;
+font-size: 11px;
+line-height: 16px;
+color: var(--opis-muted);
 white-space: nowrap;
 }
 
@@ -1302,10 +1303,8 @@ line-height: 1.6; border-top: 1px solid #eef0f2; padding-top: 12px;
 /* ──────────────────────────────────────────────────────────────────────────
    MOBILE & TABLET OPTIMIZATIONS (Screens under 768px)
    ────────────────────────────────────────────────────────────────────────── */
-@media (max-width: 1180px) {
-  #top-header .header-badge {
-    display: none;
-  }
+@media (max-width: 1200px) {
+  #top-header .header-credit { display: none; }
 }
 
 @media (max-width: 860px) {
@@ -1323,10 +1322,9 @@ line-height: 1.6; border-top: 1px solid #eef0f2; padding-top: 12px;
   #top-header {
     padding: 0 12px;
   }
-  #top-header .header-sub, 
-  #top-header .header-divider, 
-  #top-header .header-badge {
-    display: none !important; /* Hide extra text to fit title and button */
+  #top-header .header-sub,
+  #top-header .header-divider {
+    display: none;
   }
   #top-header .header-title {
     font-size: 13px;
@@ -1485,16 +1483,6 @@ line-height: 1.6; border-top: 1px solid #eef0f2; padding-top: 12px;
     flex: 1 1 0;
     min-width: 0;
     justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  #contact-btn .contact-label,
-  #tutorial-btn .tutorial-label {
-    display: none;
-  }
-  #tutorial-btn .tutorial-label-short {
-    display: inline;
   }
 }
 
@@ -1824,7 +1812,7 @@ line-height: 1.6; border-top: 1px solid #eef0f2; padding-top: 12px;
 #chart-modal .chart-close, .contact-close { color: var(--opis-muted); }
 #tutorial-modal .tut-close:hover, #meth-modal .meth-close:hover, #sim-modal .sim-close:hover,
 #chart-modal .chart-close:hover, .contact-close:hover { color: var(--opis-ink); background: #e4e6e8; }
-#ctrl-panel .pipeline-list li.selected { background: var(--opis-surface); box-shadow: inset 2px 0 var(--opis-accent); }
+#ctrl-panel .pipeline-list li.selected { background: var(--opis-surface); }
 #ctrl-panel .pipeline-list li.selected .pl-name { color: var(--opis-ink); }
 #ctrl-panel .bm-btn.active { background: #fff; color: var(--opis-accent); border-color: #c4c9ce; }
 #ctrl-panel .tab-row { background: #fff; }
@@ -1844,7 +1832,6 @@ body, button, input, select { font-variant-numeric: tabular-nums; }
 strong, b { font-weight: 600; }
 em { font-style: normal; }
 #top-header .header-sub { font-size: 13px; color: var(--opis-secondary); }
-#top-header .header-badge { font-size: 12px; color: var(--opis-muted); }
 #ctrl-panel .panel-header h2 { font-size: 18px; line-height: 24px; font-weight: 500; color: var(--opis-ink); }
 #ctrl-panel .section-label { font-size: 12px; line-height: 16px; font-weight: 500; }
 #ctrl-panel .section-hint { display: block; margin-top: 4px; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--opis-muted); }
@@ -1864,8 +1851,6 @@ em { font-style: normal; }
 #top-header { height: var(--opis-header-height); }
 #top-header .opis-logo { width: 72px; height: 44px; object-fit: contain; flex-shrink: 0; }
 #top-header .header-divider { height: 24px; margin: 0 16px; }
-#top-header .header-right { overflow: hidden; }
-#top-header .header-badge { max-width: 440px; }
 #ctrl-panel { top: var(--opis-header-height); width: var(--opis-panel-width); }
 .folium-map#map_10b250abf3b9fb60cf6682f90e22c04c {
   top: var(--opis-header-height) !important;
@@ -1879,9 +1864,6 @@ em { font-style: normal; }
     padding: var(--opis-header-height) var(--opis-panel-width) 0 0;
   }
 }
-@media (max-width: 1180px) {
-  #top-header .header-badge { display: none; }
-}
 @media (max-width: 767px) {
   #top-header { padding: 0 12px; }
   #ctrl-panel { top: auto; width: 100%; }
@@ -1893,10 +1875,10 @@ em { font-style: normal; }
   }
   #instruction-banner { max-width: none; width: calc(100% - 32px); font-size: 12px; }
   #tutorial-backdrop, #meth-backdrop, #chart-backdrop, #sim-backdrop, .contact-backdrop {
-    padding: 72px 12px 16px;
+    padding: calc(var(--opis-header-height) + 16px) 12px 16px;
   }
   #tutorial-modal, #meth-modal, #chart-modal, #sim-modal, .contact-modal {
-    max-height: calc(100dvh - 88px) !important;
+    max-height: calc(100dvh - var(--opis-header-height) - 32px) !important;
   }
   #tutorial-modal { display: flex; flex-direction: column; }
   #tutorial-modal .tut-body { overflow-y: auto; min-height: 0; }
@@ -1937,6 +1919,23 @@ button:disabled { cursor: not-allowed; }
   #ctrl-panel { box-shadow: 0 -1px 4px rgba(0,0,0,.06); }
   #spill-filters .filter-pill, #export-share-tools button,
   #spill-filters select.filter-select, #spill-filters input[type="date"] { min-height: 44px; }
+}
+
+@media (max-width: 560px) {
+  #top-header .opis-logo { width: 56px; }
+  #top-header .header-right { gap: 4px; }
+  #contact-btn .contact-label,
+  #tutorial-btn .tutorial-label { display: none; }
+}
+
+@media (max-width: 420px) {
+  #top-header { padding: 0 8px; }
+  #top-header .opis-logo { width: 44px; }
+  #contact-btn, #meth-btn, #tutorial-btn { width: 36px; min-width: 36px; justify-content: center; }
+}
+
+@media (max-width: 375px) {
+  #top-header .header-sources-label { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
